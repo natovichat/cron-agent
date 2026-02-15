@@ -326,8 +326,11 @@ class CursorAgent:
         
         duration = time.time() - start_time
         
+        # Check if execution was successful (no error message)
+        success = not action_taken.startswith("❌ Error:")
+        
         result = {
-            "success": True,
+            "success": success,
             "task": task_content,
             "timestamp": timestamp,
             "action_taken": action_taken,
@@ -356,23 +359,22 @@ class CursorAgent:
             Formatted prompt with system instructions and task
         """
         # Default system prompt (used if not in .env)
-        default_system_prompt = """You are a helpful AI assistant executing tasks from Todoist.
+        default_system_prompt = """You are an autonomous AI agent executing a task from the user's Todoist list.
 
-IMPORTANT INSTRUCTIONS:
-- Be concise and direct in your responses
-- Provide actionable results, not explanations of what you would do
-- For calculations: Return only the answer (e.g., "15" or "The answer is 15")
-- For questions: Provide clear, brief answers
-- For commands: Execute and return the result or confirmation
-- For research: Summarize key findings in 2-3 sentences
-- For code tasks: Provide the code or implementation status
-- Keep responses under 200 words unless the task requires more detail
+INSTRUCTIONS:
+- Execute this task completely and autonomously
+- Use ALL available tools, skills, and commands at your disposal
+- For calculations: Compute and return ONLY the answer (e.g., "56" or "The answer is 56")
+- For questions: Provide clear, brief answers (1-3 sentences max)
+- For code tasks: Make changes, run tests, verify results
+- For web tasks: Use browser tools
+- Access and use all MCP servers available (Gmail, Jira, etc.)
 
-RESPONSE FORMAT:
-- Start with the answer/result immediately
-- Add brief context only if necessary
-- Use emojis sparingly (only if it adds clarity)
-- No need to restate the task
+RESPONSE FORMAT (MANDATORY):
+- Start with the direct answer/result immediately
+- Keep responses SHORT and CONCISE (max 3-4 lines)
+- For calculations: Just the number or "The answer is X"
+- No explanations of what you plan to do - just do it and report the result
 
 """
         
@@ -380,6 +382,53 @@ RESPONSE FORMAT:
         system_prompt = os.getenv('CURSOR_SYSTEM_PROMPT', default_system_prompt)
         
         return system_prompt + f"\nTASK:\n{task_content}"
+    
+    def _parse_stream_json_output(self, output: str) -> str:
+        """
+        Parse stream-json format output from Cursor CLI.
+        
+        Extracts text content from JSON events.
+        
+        Args:
+            output: Raw stream-json output
+            
+        Returns:
+            Extracted text response
+        """
+        if not output:
+            return ""
+        
+        import json
+        text_parts = []
+        
+        # Process each line as separate JSON event
+        for line in output.strip().split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            
+            try:
+                event = json.loads(line)
+                
+                # Extract text from text content blocks
+                if event.get('type') == 'content_block_delta':
+                    delta = event.get('delta', {})
+                    if delta.get('type') == 'text_delta':
+                        text = delta.get('text', '')
+                        if text:
+                            text_parts.append(text)
+                
+                # Also check for direct text in content blocks
+                elif event.get('type') == 'text':
+                    text = event.get('text', '')
+                    if text:
+                        text_parts.append(text)
+                        
+            except json.JSONDecodeError:
+                # Skip non-JSON lines (debug output, etc.)
+                continue
+        
+        return ''.join(text_parts).strip()
     
     def _execute_with_cli(self, task_content: str) -> str:
         """
@@ -401,15 +450,15 @@ RESPONSE FORMAT:
             # Format the prompt with code location context
             formatted_prompt = self._format_prompt(task_content)
             
-            # Run cursor agent with --print flag for non-interactive mode
+            # Run cursor agent with streaming JSON output (proven to work in background)
             cmd = [
                 self.cursor_cli_path,
                 "agent",
                 "--print",
-                "--trust",  # Trust workspace without prompting
-                "--workspace", workspace_path,  # Specify workspace
-                "--output-format", "text",
-                "--force",  # Force allow commands
+                "--output-format", "stream-json",  # Critical: stream-json works in background
+                "--stream-partial-output",  # Critical: enables streaming
+                "--workspace", workspace_path,
+                "--approve-mcps",  # Auto-approve MCP servers
                 formatted_prompt,
             ]
             
@@ -417,6 +466,8 @@ RESPONSE FORMAT:
             print(f"   Workspace: {workspace_path}")
             print(f"   Timeout: 120 seconds")
             
+            # Capture all output
+            full_response = []
             result = subprocess.run(
                 cmd,
                 capture_output=True,
@@ -426,15 +477,18 @@ RESPONSE FORMAT:
                 cwd=workspace_path  # Run in workspace directory
             )
             
-            if result.returncode == 0:
-                response = result.stdout.strip()
-                if response:
-                    print(f"   ✅ Got response from Cursor AI ({len(response)} chars)")
-                    return response
-                else:
-                    error_msg = "Empty response from Cursor CLI"
-                    print(f"   ❌ {error_msg}")
-                    return f"❌ Error: {error_msg}"
+            # Parse streaming JSON output to extract the actual response
+            response_text = self._parse_stream_json_output(result.stdout)
+            
+            if result.returncode == 0 and response_text:
+                print(f"   ✅ Got response from Cursor AI ({len(response_text)} chars)")
+                return response_text
+            elif not response_text:
+                error_msg = "Empty response from Cursor CLI"
+                print(f"   ❌ {error_msg}")
+                if result.stderr:
+                    print(f"   stderr: {result.stderr[:200]}")
+                return f"❌ Error: {error_msg}"
             else:
                 error_msg = result.stderr.strip() if result.stderr else "Unknown error"
                 print(f"   ❌ Cursor CLI error (code {result.returncode}): {error_msg[:200]}")
@@ -523,11 +577,11 @@ class CronAgent:
             # Execute task in Cursor
             result = self.cursor.execute(task_content, task_id=task_id)
             
-            # Update in Todoist
+            # Update in Todoist with the actual response
             comment = f"""
 🎯 Execution Result:
 - Status: {"✅ Success" if result['success'] else "❌ Failed"}
-- Action: {result['action_taken']}
+- Answer: {result['action_taken'][:200]}
 - Time: {result['timestamp']}
 - Duration: {result['duration']}
 """
@@ -539,10 +593,10 @@ class CronAgent:
             self.stats['total_processed'] += 1
             if result['success']:
                 self.stats['successful'] += 1
+                print(f"✅ Task completed: {result['action_taken'][:100]}")
             else:
                 self.stats['failed'] += 1
-            
-            print(f"✅ Task completed successfully")
+                print(f"❌ Task failed: {result['action_taken'][:100]}")
             
         except Exception as e:
             print(f"❌ Error processing task: {e}")
