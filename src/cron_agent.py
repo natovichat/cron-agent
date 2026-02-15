@@ -90,7 +90,8 @@ class TodoistAPI:
             token: API Token from Todoist
         """
         self.token = token
-        self.base_url = "https://api.todoist.com/rest/v2"
+        # Updated to use new Todoist API v1 (migrated from REST API v2)
+        self.base_url = "https://api.todoist.com/api/v1"
         self.headers = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
@@ -104,18 +105,28 @@ class TodoistAPI:
             True if token is valid, False otherwise
         """
         try:
-            # Test the token by fetching projects (lightweight endpoint)
+            # Test the token by fetching tasks (always available endpoint)
+            url = f"{self.base_url}/tasks"
+            
+            # Debug: print what we're testing
+            print(f"   Testing: {url}")
+            print(f"   Token length: {len(self.token)} chars")
+            
             response = requests.get(
-                f"{self.base_url}/projects",
+                url,
                 headers=self.headers,
                 timeout=10
             )
             
+            print(f"   Response status: {response.status_code}")
+            
             if response.status_code == 200:
+                print(f"   ✓ API connection successful")
                 return True
             elif response.status_code == 401:
                 print(f"❌ Authentication failed: Invalid Todoist API token")
                 print(f"   Status code: {response.status_code}")
+                print(f"   This usually means the token is wrong or expired")
                 return False
             elif response.status_code == 403:
                 print(f"❌ Access forbidden: Token doesn't have required permissions")
@@ -123,25 +134,32 @@ class TodoistAPI:
                 return False
             elif response.status_code == 410:
                 print(f"❌ API endpoint no longer available (410 Gone)")
-                print(f"   The API version or endpoint may have changed")
-                print(f"   Please check Todoist API documentation")
+                print(f"   URL tested: {url}")
+                print(f"   This might indicate:")
+                print(f"   - The token format has changed")
+                print(f"   - Your account has issues")
+                print(f"   - The API has been updated")
+                print(f"\n   Response body: {response.text[:300]}")
                 return False
             else:
                 print(f"❌ Unexpected response from Todoist API")
                 print(f"   Status code: {response.status_code}")
-                print(f"   Response: {response.text[:200]}")
+                print(f"   Response: {response.text[:300]}")
                 return False
                 
         except requests.exceptions.Timeout:
             print(f"❌ Connection timeout: Could not reach Todoist API")
             print(f"   Check your internet connection")
             return False
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.ConnectionError as e:
             print(f"❌ Connection error: Could not connect to Todoist API")
+            print(f"   Error: {e}")
             print(f"   Check your internet connection")
             return False
         except Exception as e:
             print(f"❌ Error validating Todoist token: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def get_tasks(self) -> List[Dict]:
@@ -157,10 +175,13 @@ class TodoistAPI:
                 headers=self.headers
             )
             response.raise_for_status()
-            tasks = response.json()
+            data = response.json()
             
-            # Filter incomplete tasks
-            active_tasks = [t for t in tasks if not t.get('is_completed', False)]
+            # New API v1 returns {results: [...]} format
+            tasks = data.get('results', []) if isinstance(data, dict) else data
+            
+            # Filter incomplete tasks (new API uses 'checked' instead of 'is_completed')
+            active_tasks = [t for t in tasks if not t.get('checked', False)]
             
             print(f"📋 Found {len(active_tasks)} active tasks")
             return active_tasks
@@ -180,6 +201,7 @@ class TodoistAPI:
             Whether the operation succeeded
         """
         try:
+            # New API v1 uses /tasks/{id}/close endpoint
             response = requests.post(
                 f"{self.base_url}/tasks/{task_id}/close",
                 headers=self.headers
@@ -202,6 +224,7 @@ class TodoistAPI:
             Whether the operation succeeded
         """
         try:
+            # New API v1 uses top-level /comments endpoint with task_id in body
             response = requests.post(
                 f"{self.base_url}/comments",
                 headers=self.headers,
