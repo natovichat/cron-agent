@@ -31,12 +31,9 @@ This separation makes the project **user-friendly** while keeping technical comp
 
 ```
 cron-agent/
-├── .env                    # 🔑 Your Todoist API token (EDIT THIS)
+├── .env                    # 🔑 Your Todoist API token (auto-created)
 ├── .env.example            # 📝 Token configuration template
-├── config.json             # ⚙️ User settings (polling rate, directories)
-│
-├── setup                   # 🚀 Setup command (./setup)
-├── cronagent              # 🎮 Main command (./cronagent [options])
+├── cronagent              # 🎮 One command for everything (setup/install/status)
 │
 ├── logs/                   # 📊 Technical logs (stderr, stdout)
 │   ├── stdout.log         # Standard output from agent
@@ -63,17 +60,16 @@ cron-agent/
 # Your Todoist API token
 TODOIST_TOKEN=your_token_here
 ```
-**This is the ONLY file you must edit!**
+**Auto-created during `./cronagent setup`!** Setup prompts you for the token - no manual editing needed.
 
-#### `config.json` (Settings)
-```json
-{
-  "polling_interval_minutes": 5,
-  "log_directory": "logs",
-  "clean_log_directory": "clean_logs"
-}
+#### `cronagent` (Main Command)
+```bash
+./cronagent setup      # Interactive setup (prompts for token)
+./cronagent install    # Install scheduler
+./cronagent status     # Check if running
+./cronagent uninstall  # Remove scheduler
 ```
-**Adjust polling rate and log directories here**
+**One command for everything!**
 
 ---
 
@@ -113,31 +109,32 @@ src/
 
 | File | Purpose | Usage |
 |------|---------|-------|
-| `setup` | Setup launcher | `./setup` |
-| `cronagent` | Agent launcher | `./cronagent [options]` |
+| `cronagent` | All-in-one command | `./cronagent [command]` |
 
 **Examples:**
 ```bash
-# Setup project
-./setup
+# Interactive setup (prompts for token)
+./cronagent setup
 
 # Install scheduler
-./cronagent --install
+./cronagent install
 
 # Check status
-./cronagent --status
+./cronagent status
 
 # Uninstall
-./cronagent --uninstall
+./cronagent uninstall
+
+# Manual run
+./cronagent
 ```
 
 #### Configuration Files
 
 | File | Purpose | Edit? |
 |------|---------|-------|
-| `.env` | API token | ✅ Yes (required) |
-| `.env.example` | Token template | No (copy to .env) |
-| `config.json` | User settings | ✅ Yes (optional) |
+| `.env` | API token | ✅ Auto-created by setup |
+| `.env.example` | Token template | No (reference only) |
 | `.gitignore` | Git ignore rules | No |
 
 #### Documentation Files
@@ -354,19 +351,21 @@ venv/
 
 ### For Users
 
-**Files you interact with:**
+**What you use:**
 ```
-.env                # Edit: Add your token
-config.json         # Edit: Adjust settings
-setup               # Run: ./setup
-cronagent           # Run: ./cronagent --install
+cronagent           # One command for everything:
+                    #   ./cronagent setup    (interactive - prompts for token)
+                    #   ./cronagent install
+                    #   ./cronagent status
+                    #   ./cronagent uninstall
 logs/               # Check: Technical logs
 clean_logs/         # Check: Conversation logs
 docs/               # Read: Documentation
 ```
 
-**Files you don't need to touch:**
+**What you don't touch:**
 ```
+.env                # Auto-created by setup (contains your token)
 src/                # Technical code (hidden complexity)
 .gitignore          # Git configuration
 IMPLEMENTATION_SUMMARY.md  # Technical details
@@ -385,14 +384,14 @@ IMPLEMENTATION_SUMMARY.md  # Technical details
 
 **Testing:**
 ```bash
-# Setup
-./setup
+# Setup (prompts for token)
+./cronagent setup
 
 # Install
-./cronagent --install
+./cronagent install
 
 # Check status
-./cronagent --status
+./cronagent status
 
 # View logs
 tail -f logs/stdout.log
@@ -428,7 +427,7 @@ cat clean_logs/conversation_*.log
 - Conversation logs: `conversation_YYYYMMDD_HHMMSS.log`
 
 ### Configuration Files
-- User config: `.env`, `config.json`
+- User config: `.env` (auto-generated)
 - OS-specific: `.plist`, `.service`, `.timer`
 
 ### Python Files
@@ -441,13 +440,14 @@ cat clean_logs/conversation_*.log
 ## 🔄 File Lifecycle
 
 ### Setup Phase
-1. User runs `./setup`
-2. Creates `src/venv/`
-3. Installs dependencies
-4. Creates `.env` from `.env.example`
+1. User runs `./cronagent setup`
+2. Prompts for Todoist API token
+3. Creates `src/venv/`
+4. Installs dependencies
+5. Creates `.env` with user's token
 
 ### Installation Phase
-1. User runs `./cronagent --install`
+1. User runs `./cronagent install`
 2. Creates OS-specific scheduler configuration
 3. Creates `logs/` and `clean_logs/` directories
 4. Starts scheduler
@@ -460,7 +460,7 @@ cat clean_logs/conversation_*.log
 5. Saves conversations to `clean_logs/`
 
 ### Uninstallation Phase
-1. User runs `./cronagent --uninstall`
+1. User runs `./cronagent uninstall`
 2. Stops scheduler
 3. Removes OS-specific configuration
 4. Logs remain for review
@@ -470,16 +470,16 @@ cat clean_logs/conversation_*.log
 ## 🎯 Key Takeaways
 
 ### For Users:
-- **Only edit**: `.env` and `config.json`
-- **Run**: `./setup` and `./cronagent`
+- **Run**: `./cronagent setup` (interactive - prompts for token)
+- **Then**: `./cronagent install` (installs scheduler)
 - **Check**: `logs/` and `clean_logs/`
-- **Ignore**: Everything in `src/`
+- **Ignore**: Everything in `src/` (and even `.env` - auto-created!)
 
 ### For Developers:
 - **Architecture**: Factory + Strategy pattern
 - **Entry point**: `src/cron_agent.py`
 - **OS handling**: `src/scheduler/`
-- **Testing**: Use `--install`, `--status`, `--uninstall`
+- **Testing**: Use `./cronagent setup/install/status/uninstall`
 
 ---
 

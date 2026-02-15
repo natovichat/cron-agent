@@ -9,26 +9,19 @@
 
 ---
 
-## 🚀 Quick Start (3 Steps)
+## 🚀 Quick Start (2 Steps!)
 
-### 1. Setup
+### 1. Setup (Interactive)
 ```bash
 ./cronagent setup
 ```
-This installs everything you need (takes ~30 seconds).
-
-### 2. Configure Your Token
-Edit the `.env` file and add your Todoist API token:
-```bash
-nano .env
-```
-```bash
-TODOIST_TOKEN=your_token_here
-```
+This will:
+- Install everything you need (~30 seconds)
+- **Prompt you for your Todoist API token** (no manual file editing!)
 
 Get your token from: https://todoist.com/app/settings/integrations/developer
 
-### 3. Install Scheduler
+### 2. Install Scheduler
 ```bash
 ./cronagent install
 ```
@@ -62,7 +55,7 @@ cron-agent/
 ```bash
 TODOIST_TOKEN=your_token_here
 ```
-**This is the ONLY file you must edit!**
+**Created automatically during setup!** No manual editing needed.
 
 #### `cronagent` (Main Command)
 ```bash

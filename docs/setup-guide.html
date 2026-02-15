@@ -477,7 +477,7 @@ cd cron-agent
                         </div>
 
                         <div class="step">
-                            <h4>Run Setup</h4>
+                            <h4>Run Interactive Setup</h4>
                             <div class="code-block">
 <span class="comment"># Run the setup command</span>
 ./cronagent setup
@@ -487,27 +487,14 @@ cd cron-agent
                                 <li>✓ Check Python version (3.7+)</li>
                                 <li>✓ Create virtual environment in <code>src/venv/</code></li>
                                 <li>✓ Install all dependencies</li>
-                                <li>✓ Create <code>.env</code> file from template</li>
+                                <li>✓ <strong>Prompt you for your Todoist API token</strong></li>
+                                <li>✓ Create <code>.env</code> file with your token</li>
                             </ul>
                             <div class="success">
-                                Takes ~30 seconds. All technical files stay in <code>src/</code>!
+                                Takes ~30 seconds. <strong>No manual file editing needed!</strong>
                             </div>
-                        </div>
-
-                        <div class="step">
-                            <h4>Configure Todoist API Token</h4>
-                            <p>Edit the <code>.env</code> file (in root directory) and add your Todoist API token:</p>
-                            <div class="code-block">
-<span class="comment"># Open .env file</span>
-nano .env
-
-<span class="comment"># Add your token</span>
-TODOIST_TOKEN=<span class="string">your_token_here</span>
-                            </div>
-                            <p>Get your token from: <a href="https://todoist.com/app/settings/integrations/developer" target="_blank">Todoist Settings → Integrations → Developer</a></p>
-                            
                             <div class="info">
-                                <strong>Optional:</strong> You can also adjust settings in <code>config.json</code> (polling interval, log directories).
+                                Get your token from: <a href="https://todoist.com/app/settings/integrations/developer" target="_blank">Todoist Settings → Integrations → Developer</a>
                             </div>
                         </div>
 
@@ -657,22 +644,19 @@ cd cron-agent
                         </div>
 
                         <div class="step">
-                            <h4>Run Setup</h4>
+                            <h4>Run Interactive Setup</h4>
                             <div class="code-block">
 <span class="comment"># Run the setup command</span>
 ./cronagent setup
                             </div>
-                            <p>Auto-installs everything in <code>src/venv/</code></p>
-                        </div>
-
-                        <div class="step">
-                            <h4>Configure Todoist Token</h4>
-                            <div class="code-block">
-<span class="comment"># Edit .env in root directory</span>
-nano .env
-
-<span class="comment"># Add your token</span>
-TODOIST_TOKEN=<span class="string">your_token_here</span>
+                            <p>Setup will:</p>
+                            <ul style="margin-left: 50px;">
+                                <li>✓ Install everything in <code>src/venv/</code></li>
+                                <li>✓ <strong>Prompt you for your Todoist token</strong></li>
+                                <li>✓ Create <code>.env</code> automatically</li>
+                            </ul>
+                            <div class="success">
+                                No manual file editing needed!
                             </div>
                         </div>
 
@@ -787,22 +771,19 @@ cd cron-agent
                         </div>
 
                         <div class="step">
-                            <h4>Run Setup</h4>
+                            <h4>Run Interactive Setup</h4>
                             <div class="code-block">
 <span class="comment"># Run setup (PowerShell or cmd)</span>
 python cronagent setup
                             </div>
-                            <p>Creates virtual environment in <code>src\venv\</code></p>
-                        </div>
-
-                        <div class="step">
-                            <h4>Configure Token</h4>
-                            <div class="code-block">
-<span class="comment"># Edit .env file in root directory</span>
-notepad .env
-
-<span class="comment"># Add token</span>
-TODOIST_TOKEN=<span class="string">your_token_here</span>
+                            <p>Setup will:</p>
+                            <ul style="margin-left: 50px;">
+                                <li>✓ Create virtual environment in <code>src\venv\</code></li>
+                                <li>✓ <strong>Prompt you for your Todoist token</strong></li>
+                                <li>✓ Create <code>.env</code> file automatically</li>
+                            </ul>
+                            <div class="success">
+                                No manual file editing needed!
                             </div>
                         </div>
 
@@ -917,7 +898,7 @@ cron-agent/
                             <tr>
                                 <td><code>.env</code></td>
                                 <td>Your Todoist API token</td>
-                                <td>✅ Yes (required)</td>
+                                <td>✅ Auto-created by setup</td>
                             </tr>
                             <tr>
                                 <td><code>cronagent</code></td>
@@ -943,7 +924,7 @@ cron-agent/
                     </table>
 
                     <div class="success">
-                        <strong>Simple!</strong> You only need to edit <code>.env</code>. Use <code>./cronagent</code> for everything else!
+                        <strong>Ultra Simple!</strong> Setup prompts for your token. Use <code>./cronagent</code> for everything. No manual file editing!
                     </div>
                 </div>
             </div>
@@ -1087,7 +1068,7 @@ type logs\stdout.log             <span class="comment"># Windows</span>
                 <a href="../CHANGELOG.md">Changelog</a>
             </p>
             <p style="margin-top: 10px; font-size: 0.9em; color: #999;">
-                All technical code is in <code>src/</code> - you only need to work with root files!
+                All technical code is in <code>src/</code> - just run <code>./cronagent setup</code> and you're done!
             </p>
         </footer>
     </div>
