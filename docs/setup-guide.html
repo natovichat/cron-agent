@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cron Agent - Cross-Platform Setup Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 3px solid #e9ecef;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            border: none;
+            background: transparent;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .nav-tab .icon {
+            font-size: 2em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .os-section {
+            display: none;
+        }
+
+        .os-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #e9ecef;
+        }
+
+        .section h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin: 25px 0 15px;
+        }
+
+        .requirements {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .requirements h3 {
+            margin-top: 0;
+        }
+
+        .requirement-item {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .requirement-item .status {
+            font-size: 1.5em;
+            margin-right: 10px;
+            width: 30px;
+        }
+
+        .steps {
+            counter-reset: step-counter;
+        }
+
+        .step {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            position: relative;
+            counter-increment: step-counter;
+            transition: all 0.3s ease;
+        }
+
+        .step:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .step::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: -20px;
+            top: 20px;
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
+        }
+
+        .step h4 {
+            color: #667eea;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            margin-left: 30px;
+        }
+
+        .step p {
+            margin: 10px 0;
+            margin-left: 30px;
+        }
+
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            margin-left: 30px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .code-block .comment {
+            color: #5c6370;
+        }
+
+        .code-block .command {
+            color: #61afef;
+        }
+
+        .code-block .string {
+            color: #98c379;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .warning::before {
+            content: "⚠️ ";
+            font-size: 1.5em;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .success::before {
+            content: "✅ ";
+            font-size: 1.5em;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .info::before {
+            content: "ℹ️ ";
+            font-size: 1.5em;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #666;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin: 0 5px;
+        }
+
+        .badge-required {
+            background: #dc3545;
+            color: white;
+        }
+
+        .badge-optional {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .badge-auto {
+            background: #28a745;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .step::before {
+                position: relative;
+                left: 0;
+                margin-bottom: 10px;
+            }
+
+            .step h4,
+            .step p,
+            .code-block {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Cron Agent</h1>
+            <p>Cross-Platform Setup Guide</p>
+            <p style="font-size: 0.9em; opacity: 0.8;">Todoist + Cursor AI Automation</p>
+        </header>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showOS('macos')">
+                <span class="icon">🍎</span>
+                macOS
+            </button>
+            <button class="nav-tab" onclick="showOS('linux')">
+                <span class="icon">🐧</span>
+                Linux
+            </button>
+            <button class="nav-tab" onclick="showOS('windows')">
+                <span class="icon">🪟</span>
+                Windows
+            </button>
+            <button class="nav-tab" onclick="showOS('comparison')">
+                <span class="icon">📊</span>
+                Comparison
+            </button>
+        </div>
+
+        <div class="content">
+            <!-- macOS Section -->
+            <div id="macos" class="os-section active">
+                <div class="section">
+                    <h2>🍎 macOS Setup</h2>
+                    
+                    <div class="requirements">
+                        <h3>Requirements</h3>
+                        <div class="requirement-item">
+                            <span class="status">✅</span>
+                            <div>
+                                <strong>Python 3.8+</strong>
+                                <span class="badge badge-required">Required</span>
+                                <p>Must be installed manually before setup</p>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <span class="status">✅</span>
+                            <div>
+                                <strong>pip</strong>
+                                <span class="badge badge-auto">Auto</span>
+                                <p>Comes with Python installation</p>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <span class="status">✅</span>
+                            <div>
+                                <strong>launchctl</strong>
+                                <span class="badge badge-auto">Built-in</span>
+                                <p>Built into macOS (LaunchAgents)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info">
+                        <strong>Good News!</strong> No sudo/admin privileges required. Everything runs in your user space.
+                    </div>
+
+                    <h3>What Gets Installed?</h3>
+                    <ul style="margin-left: 50px; line-height: 2;">
+                        <li>📦 Python virtual environment (<code>venv/</code>)</li>
+                        <li>📚 All dependencies from <code>requirements.txt</code></li>
+                        <li>⚙️ Configuration file (<code>.env</code>)</li>
+                        <li>⏰ LaunchAgent plist file (<code>~/Library/LaunchAgents/com.cursor.cronagent.plist</code>)</li>
+                        <li>📝 Log directories (<code>logs/</code>, <code>clean_logs/</code>)</li>
+                    </ul>
+                </div>
+
+                <div class="section">
+                    <h2>Installation Steps</h2>
+                    <div class="steps">
+                        <div class="step">
+                            <h4>Install Python 3.8+</h4>
+                            <p>Choose one of these methods:</p>
+                            
+                            <p><strong>Option A: Homebrew (Recommended)</strong></p>
+                            <div class="code-block">
+<span class="comment"># Install Homebrew (if not installed)</span>
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+<span class="comment"># Install Python</span>
+brew install python3
+                            </div>
+
+                            <p><strong>Option B: Official Installer</strong></p>
+                            <p>Download from <a href="https://www.python.org/downloads/" target="_blank">python.org</a></p>
+
+                            <p><strong>Verify Installation:</strong></p>
+                            <div class="code-block">
+python3 --version
+<span class="comment"># Should show: Python 3.8.x or higher</span>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <h4>Clone/Download the Project</h4>
+                            <div class="code-block">
+<span class="comment"># Clone from repository</span>
+git clone https://github.com/yourusername/cron-agent.git
+cd cron-agent
+
+<span class="comment"># Or download and extract ZIP</span>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <h4>Run Setup Script</h4>
+                            <div class="code-block">
+<span class="comment"># Run the cross-platform setup</span>
+python3 setup.py
+                            </div>
+                            <p>This will:</p>
+                            <ul style="margin-left: 50px;">
+                                <li>✓ Check Python version</li>
+                                <li>✓ Create virtual environment</li>
+                                <li>✓ Install all dependencies</li>
+                                <li>✓ Create .env file from template</li>
+                                <li>✓ Create LaunchAgent plist</li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h4>Configure Todoist API Token</h4>
+                            <p>Edit the <code>.env</code> file and add your Todoist API token:</p>
+                            <div class="code-block">
+<span class="comment"># Open .env file</span>
+nano .env
+
+<span class="comment"># Add your token</span>
+TODOIST_TOKEN=<span class="string">your_token_here</span>
+                            </div>
+                            <p>Get your token from: <a href="https://todoist.com/app/settings/integrations/developer" target="_blank">Todoist Settings → Integrations → Developer</a></p>
+                        </div>
+
+                        <div class="step">
+                            <h4>Install Scheduler (LaunchAgent)</h4>
+                            <div class="code-block">
+<span class="comment"># Install and start the scheduler</span>
+python3 cron_agent.py --install
+                            </div>
+                            <p>This creates and loads the LaunchAgent that will run your cron agent every 5 minutes.</p>
+                        </div>
+
+                        <div class="step">
+                            <h4>Verify It's Running</h4>
+                            <div class="code-block">
+<span class="comment"># Check scheduler status</span>
+python3 cron_agent.py --status
+
+<span class="comment"># View logs</span>
+tail -f logs/stdout.log
+
+<span class="comment"># View clean logs</span>
+./view_clean_logs.sh
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="success">
+                        <strong>Success!</strong> Your cron agent is now running automatically every 5 minutes via LaunchAgent.
+                    </div>
+
+                    <h3>Management Commands</h3>
+                    <div class="code-block">
+<span class="comment"># Check status</span>
+python3 cron_agent.py --status
+
+<span class="comment"># Uninstall scheduler</span>
+python3 cron_agent.py --uninstall
+
+<span class="comment"># Manual run (for testing)</span>
+python3 cron_agent.py
+
+<span class="comment"># View LaunchAgent logs</span>
+launchctl list | grep cronagent
+                    </div>
+
+                    <div class="warning">
+                        <strong>Note:</strong> If your Mac goes to sleep, the LaunchAgent will automatically catch up when it wakes. This is more reliable than traditional cron!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linux Section -->
+            <div id="linux" class="os-section">
+                <div class="section">
+                    <h2>🐧 Linux Setup</h2>
+                    
+                    <div class="requirements">
+                        <h3>Requirements</h3>
+                        <div class="requirement-item">
+                            <span class="status">✅</span>
+                            <div>
+                                <strong>Python 3.8+</strong>
+                                <span class="badge badge-required">Required</span>
+                                <p>Must be installed manually</p>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <span class="status">✅</span>
+                            <div>
+                                <strong>pip</strong>
+                                <span class="badge badge-required">Required</span>
+                                <p>Install via package manager</p>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <span class="status">⚙️</span>
+                            <div>
+                                <strong>systemd (preferred)</strong>
+                                <span class="badge badge-optional">Optional</span>
+                                <p>Built into modern distros (Ubuntu 16+, Fedora, Debian 8+)</p>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <span class="status">⏰</span>
+                            <div>
+                                <strong>cron (fallback)</strong>
+                                <span class="badge badge-auto">Built-in</span>
+                                <p>Available on all Linux systems</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info">
+                        <strong>Smart Detection:</strong> Setup script automatically detects if systemd is available and uses it. Falls back to cron if systemd is not present.
+                    </div>
+
+                    <h3>What Gets Installed?</h3>
+                    <ul style="margin-left: 50px; line-height: 2;">
+                        <li>📦 Python virtual environment (<code>venv/</code>)</li>
+                        <li>📚 All dependencies from <code>requirements.txt</code></li>
+                        <li>⚙️ Configuration file (<code>.env</code>)</li>
+                        <li>⏰ <strong>systemd:</strong> Timer + Service files (<code>~/.config/systemd/user/</code>)</li>
+                        <li>⏰ <strong>cron:</strong> Crontab entry (user crontab, no sudo)</li>
+                        <li>📝 Log directories</li>
+                    </ul>
+                </div>
+
+                <div class="section">
+                    <h2>Installation Steps</h2>
+                    <div class="steps">
+                        <div class="step">
+                            <h4>Install Python 3.8+</h4>
+                            
+                            <p><strong>Ubuntu/Debian:</strong></p>
+                            <div class="code-block">
+sudo apt update
+sudo apt install python3 python3-pip python3-venv
+                            </div>
+
+                            <p><strong>Fedora/RHEL/CentOS:</strong></p>
+                            <div class="code-block">
+sudo dnf install python3 python3-pip
+                            </div>
+
+                            <p><strong>Arch Linux:</strong></p>
+                            <div class="code-block">
+sudo pacman -S python python-pip
+                            </div>
+
+                            <p><strong>Verify Installation:</strong></p>
+                            <div class="code-block">
+python3 --version
+pip3 --version
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <h4>Clone/Download the Project</h4>
+                            <div class="code-block">
+git clone https://github.com/yourusername/cron-agent.git
+cd cron-agent
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <h4>Run Setup Script</h4>
+                            <div class="code-block">
+<span class="comment"># Run the cross-platform setup</span>
+python3 setup.py
+                            </div>
+                            <p>This will automatically detect your system and install the best scheduler:</p>
+                            <ul style="margin-left: 50px;">
+                                <li>✓ <strong>systemd available?</strong> → Install systemd timer (modern, recommended)</li>
+                                <li>✓ <strong>No systemd?</strong> → Install cron entry (universal fallback)</li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h4>Configure Todoist API Token</h4>
+                            <div class="code-block">
+<span class="comment"># Edit .env file</span>
+nano .env
+
+<span class="comment"># Add your token</span>
+TODOIST_TOKEN=<span class="string">your_token_here</span>
+                            </div>
+                            <p>Get token from: <a href="https://todoist.com/app/settings/integrations/developer" target="_blank">Todoist Developer Settings</a></p>
+                        </div>
+
+                        <div class="step">
+                            <h4>Install Scheduler</h4>
+                            <div class="code-block">
+<span class="comment"># Install and start the scheduler</span>
+python3 cron_agent.py --install
+                            </div>
+                            
+                            <p><strong>For systemd (if detected):</strong></p>
+                            <ul style="margin-left: 50px;">
+                                <li>Creates <code>~/.config/systemd/user/cronagent.service</code></li>
+                                <li>Creates <code>~/.config/systemd/user/cronagent.timer</code></li>
+                                <li>Enables and starts the timer</li>
+                            </ul>
+
+                            <p><strong>For cron (fallback):</strong></p>
+                            <ul style="margin-left: 50px;">
+                                <li>Adds entry to user crontab</li>
+                                <li>Runs every 5 minutes</li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h4>Verify It's Running</h4>
+                            
+                            <p><strong>For systemd:</strong></p>
+                            <div class="code-block">
+<span class="comment"># Check timer status</span>
+systemctl --user status cronagent.timer
+
+<span class="comment"># Check service status</span>
+systemctl --user status cronagent.service
+
+<span class="comment"># View logs</span>
+journalctl --user -u cronagent.service -f
+                            </div>
+
+                            <p><strong>For cron:</strong></p>
+                            <div class="code-block">
+<span class="comment"># View crontab</span>
+crontab -l
+
+<span class="comment"># View logs</span>
+tail -f ~/cron-agent/logs/stdout.log
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="success">
+                        <strong>Success!</strong> Your cron agent is now running automatically every 5 minutes.
+                    </div>
+
+                    <h3>Management Commands</h3>
+                    
+                    <p><strong>systemd:</strong></p>
+                    <div class="code-block">
+<span class="comment"># Check status</span>
+python3 cron_agent.py --status
+systemctl --user status cronagent.timer
+
+<span class="comment"># Stop timer</span>
+systemctl --user stop cronagent.timer
+
+<span class="comment"># Start timer</span>
+systemctl --user start cronagent.timer
+
+<span class="comment"># Uninstall</span>
+python3 cron_agent.py --uninstall
+                    </div>
+
+                    <p><strong>cron:</strong></p>
+                    <div class="code-block">
+<span class="comment"># Check status</span>
+python3 cron_agent.py --status
+
+<span class="comment"># Edit crontab</span>
+crontab -e
+
+<span class="comment"># View crontab</span>
+crontab -l
+
+<span class="comment"># Uninstall</span>
+python3 cron_agent.py --uninstall
+                    </div>
+                </div>
+            </div>
+
+            <!-- Windows Section -->
+            <div id="windows" class="os-section">
+                <div class="section">
+                    <h2>🪟 Windows Setup</h2>
+                    
+                    <div class="requirements">
+                        <h3>Requirements</h3>
+                        <div class="requirement-item">
+                            <span class="status">✅</span>
+                            <div>
+                                <strong>Python 3.8+</strong>
+                                <span class="badge badge-required">Required</span>
+                                <p>Download from python.org or Microsoft Store</p>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <span class="status">✅</span>
+                            <div>
+                                <strong>pip</strong>
+                                <span class="badge badge-auto">Auto</span>
+                                <p>Comes with Python installer (check "pip" option)</p>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <span class="status">✅</span>
+                            <div>
+                                <strong>Task Scheduler</strong>
+                                <span class="badge badge-auto">Built-in</span>
+                                <p>Built into Windows (schtasks.exe)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="warning">
+                        <strong>Admin Privileges:</strong> Task Scheduler installation may require "Run as Administrator" depending on your Windows configuration. If setup fails, try running Command Prompt or PowerShell as Administrator.
+                    </div>
+
+                    <h3>What Gets Installed?</h3>
+                    <ul style="margin-left: 50px; line-height: 2;">
+                        <li>📦 Python virtual environment (<code>venv\</code>)</li>
+                        <li>📚 All dependencies from <code>requirements.txt</code></li>
+                        <li>⚙️ Configuration file (<code>.env</code>)</li>
+                        <li>⏰ Windows Task Scheduler task (runs every 5 minutes)</li>
+                        <li>📝 Log directories</li>
+                    </ul>
+                </div>
+
+                <div class="section">
+                    <h2>Installation Steps</h2>
+                    <div class="steps">
+                        <div class="step">
+                            <h4>Install Python 3.8+</h4>
+                            
+                            <p><strong>Option A: Official Installer (Recommended)</strong></p>
+                            <ol style="margin-left: 50px;">
+                                <li>Download from <a href="https://www.python.org/downloads/" target="_blank">python.org</a></li>
+                                <li>Run installer</li>
+                                <li><strong>IMPORTANT:</strong> Check "Add Python to PATH"</li>
+                                <li>Check "pip" option</li>
+                                <li>Click "Install Now"</li>
+                            </ol>
+
+                            <p><strong>Option B: Microsoft Store</strong></p>
+                            <ol style="margin-left: 50px;">
+                                <li>Open Microsoft Store</li>
+                                <li>Search "Python 3.11" (or latest)</li>
+                                <li>Click "Get" to install</li>
+                            </ol>
+
+                            <p><strong>Verify Installation:</strong></p>
+                            <div class="code-block">
+<span class="comment"># Open Command Prompt or PowerShell</span>
+python --version
+pip --version
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <h4>Download the Project</h4>
+                            <p>Download and extract the ZIP file, or clone with git:</p>
+                            <div class="code-block">
+git clone https://github.com/yourusername/cron-agent.git
+cd cron-agent
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <h4>Run Setup Script</h4>
+                            <p>Open Command Prompt or PowerShell in the project directory:</p>
+                            <div class="code-block">
+<span class="comment"># Run the cross-platform setup</span>
+python setup.py
+                            </div>
+                            
+                            <div class="warning">
+                                If you get a permission error, try:
+                                <ol style="margin-left: 20px; margin-top: 10px;">
+                                    <li>Right-click Command Prompt → "Run as Administrator"</li>
+                                    <li>Navigate to project folder: <code>cd C:\path\to\cron-agent</code></li>
+                                    <li>Run: <code>python setup.py</code></li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <h4>Configure Todoist API Token</h4>
+                            <div class="code-block">
+<span class="comment"># Open .env file with Notepad</span>
+notepad .env
+
+<span class="comment"># Add your token</span>
+TODOIST_TOKEN=<span class="string">your_token_here</span>
+                            </div>
+                            <p>Save and close Notepad.</p>
+                            <p>Get token from: <a href="https://todoist.com/app/settings/integrations/developer" target="_blank">Todoist Developer Settings</a></p>
+                        </div>
+
+                        <div class="step">
+                            <h4>Install Windows Task Scheduler Task</h4>
+                            <div class="code-block">
+<span class="comment"># Install and start the scheduler</span>
+python cron_agent.py --install
+                            </div>
+                            <p>This creates a scheduled task named "CursorCronAgent" that runs every 5 minutes.</p>
+                        </div>
+
+                        <div class="step">
+                            <h4>Verify It's Running</h4>
+                            
+                            <p><strong>Via Command Line:</strong></p>
+                            <div class="code-block">
+<span class="comment"># Check status</span>
+python cron_agent.py --status
+
+<span class="comment"># View task in Task Scheduler</span>
+schtasks /Query /TN "CursorCronAgent" /V /FO LIST
+                            </div>
+
+                            <p><strong>Via GUI:</strong></p>
+                            <ol style="margin-left: 50px;">
+                                <li>Press <kbd>Win + R</kbd></li>
+                                <li>Type: <code>taskschd.msc</code></li>
+                                <li>Look for "CursorCronAgent" in Task Scheduler Library</li>
+                                <li>Check "Last Run Time" and "Next Run Time"</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="success">
+                        <strong>Success!</strong> Your cron agent is now running automatically every 5 minutes via Windows Task Scheduler.
+                    </div>
+
+                    <h3>Management Commands</h3>
+                    <div class="code-block">
+<span class="comment"># Check status</span>
+python cron_agent.py --status
+
+<span class="comment"># Manually run task</span>
+schtasks /Run /TN "CursorCronAgent"
+
+<span class="comment"># Stop task</span>
+schtasks /End /TN "CursorCronAgent"
+
+<span class="comment"># Uninstall scheduler</span>
+python cron_agent.py --uninstall
+
+<span class="comment"># View logs</span>
+type logs\stdout.log
+                    </div>
+
+                    <h3>Alternative: Run Manually</h3>
+                    <div class="info">
+                        If you don't want to use Task Scheduler, you can run the agent manually:
+                        <div class="code-block" style="margin-top: 10px;">
+<span class="comment"># Run once</span>
+python cron_agent.py
+
+<span class="comment"># Or keep a Command Prompt open and run periodically</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Section -->
+            <div id="comparison" class="os-section">
+                <div class="section">
+                    <h2>📊 Platform Comparison</h2>
+
+                    <h3>Requirements Comparison</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>macOS</th>
+                                <th>Linux</th>
+                                <th>Windows</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Python 3.8+</strong></td>
+                                <td>✅ Required</td>
+                                <td>✅ Required</td>
+                                <td>✅ Required</td>
+                            </tr>
+                            <tr>
+                                <td><strong>pip</strong></td>
+                                <td>✅ Bundled</td>
+                                <td>⚠️ Install separately</td>
+                                <td>✅ Bundled</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Scheduler</strong></td>
+                                <td>✅ LaunchAgents (built-in)</td>
+                                <td>⚙️ systemd or cron</td>
+                                <td>✅ Task Scheduler (built-in)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Admin/Sudo</strong></td>
+                                <td>❌ Not required</td>
+                                <td>❌ Not required</td>
+                                <td>⚠️ May be required</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Setup Command</strong></td>
+                                <td><code>python3 setup.py</code></td>
+                                <td><code>python3 setup.py</code></td>
+                                <td><code>python setup.py</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Scheduler Features Comparison</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>LaunchAgents (macOS)</th>
+                                <th>systemd (Linux)</th>
+                                <th>cron (Linux)</th>
+                                <th>Task Scheduler (Windows)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Reliability</strong></td>
+                                <td>🟢 Excellent</td>
+                                <td>🟢 Excellent</td>
+                                <td>🟡 Good</td>
+                                <td>🟢 Excellent</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Survives Sleep/Hibernate</strong></td>
+                                <td>✅ Yes</td>
+                                <td>✅ Yes</td>
+                                <td>⚠️ May miss schedules</td>
+                                <td>✅ Yes</td>
+                            </tr>
+                            <tr>
+                                <td><strong>GUI Available</strong></td>
+                                <td>❌ Console only</td>
+                                <td>❌ Console only</td>
+                                <td>❌ Console only</td>
+                                <td>✅ Yes</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Log Management</strong></td>
+                                <td>✅ Automatic</td>
+                                <td>✅ journalctl</td>
+                                <td>⚠️ Manual</td>
+                                <td>✅ Event Viewer</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Modern/Recommended</strong></td>
+                                <td>✅ Yes</td>
+                                <td>✅ Yes</td>
+                                <td>⚠️ Legacy</td>
+                                <td>✅ Yes</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Setup Complexity</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 30px 0;">
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; border: 2px solid #667eea;">
+                            <h4 style="color: #667eea; text-align: center;">macOS</h4>
+                            <p style="font-size: 3em; text-align: center; margin: 20px 0;">⭐⭐⭐⭐⭐</p>
+                            <p style="text-align: center;"><strong>Easiest</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li>✅ Python usually pre-installed</li>
+                                <li>✅ No sudo required</li>
+                                <li>✅ LaunchAgents reliable</li>
+                            </ul>
+                        </div>
+
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; border: 2px solid #28a745;">
+                            <h4 style="color: #28a745; text-align: center;">Linux</h4>
+                            <p style="font-size: 3em; text-align: center; margin: 20px 0;">⭐⭐⭐⭐</p>
+                            <p style="text-align: center;"><strong>Easy</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li>✅ Python in repos</li>
+                                <li>✅ No sudo required (user mode)</li>
+                                <li>⚙️ systemd auto-detected</li>
+                            </ul>
+                        </div>
+
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; border: 2px solid #ffc107;">
+                            <h4 style="color: #dc8a00; text-align: center;">Windows</h4>
+                            <p style="font-size: 3em; text-align: center; margin: 20px 0;">⭐⭐⭐</p>
+                            <p style="text-align: center;"><strong>Moderate</strong></p>
+                            <ul style="margin-top: 15px;">
+                                <li>⚠️ Install Python manually</li>
+                                <li>⚠️ May need admin</li>
+                                <li>✅ Task Scheduler GUI</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3>Recommended Use Cases</h3>
+                    <div class="info">
+                        <strong>Use macOS LaunchAgents if:</strong>
+                        <ul style="margin: 10px 0 10px 30px;">
+                            <li>You're on a Mac (obviously!)</li>
+                            <li>You want the most reliable laptop scheduling</li>
+                            <li>You prefer Apple's ecosystem approach</li>
+                        </ul>
+                    </div>
+
+                    <div class="info">
+                        <strong>Use Linux systemd if:</strong>
+                        <ul style="margin: 10px 0 10px 30px;">
+                            <li>You're on a modern Linux distro (Ubuntu 16+, Fedora, etc.)</li>
+                            <li>You want advanced scheduling features</li>
+                            <li>You prefer modern service management</li>
+                        </ul>
+                    </div>
+
+                    <div class="info">
+                        <strong>Use Linux cron if:</strong>
+                        <ul style="margin: 10px 0 10px 30px;">
+                            <li>You're on an older Linux distro without systemd</li>
+                            <li>You prefer traditional Unix tools</li>
+                            <li>You need maximum compatibility</li>
+                        </ul>
+                    </div>
+
+                    <div class="info">
+                        <strong>Use Windows Task Scheduler if:</strong>
+                        <ul style="margin: 10px 0 10px 30px;">
+                            <li>You're on Windows (obviously!)</li>
+                            <li>You want GUI management</li>
+                            <li>You need enterprise integration</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p><strong>🤖 Cron Agent</strong> - Todoist + Cursor AI Automation</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">Built with ❤️ for cross-platform automation</p>
+            <p style="margin-top: 10px; font-size: 0.85em; color: #999;">
+                Need help? Check the <a href="../README.md">README</a> or view <a href="../CHANGELOG.md">CHANGELOG</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        function showOS(osName) {
+            // Hide all sections
+            document.querySelectorAll('.os-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(osName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.closest('.nav-tab').classList.add('active');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

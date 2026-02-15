@@ -386,15 +386,118 @@ def main():
     """
     נקודת הכניסה הראשית
     """
+    import argparse
+    
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description="Cron Agent - אוטומציה חכמה לניהול משימות"
+    )
+    parser.add_argument(
+        "--install",
+        action="store_true",
+        help="Install OS-specific scheduler (LaunchAgent/systemd/cron/Task Scheduler)"
+    )
+    parser.add_argument(
+        "--uninstall",
+        action="store_true",
+        help="Uninstall scheduler"
+    )
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        help="Show scheduler status"
+    )
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=5,
+        help="Interval in minutes (default: 5)"
+    )
+    
+    args = parser.parse_args()
+    
+    # Handle scheduler management commands
+    if args.install or args.uninstall or args.status:
+        from pathlib import Path
+        from scheduler.factory import create_scheduler
+        
+        script_path = Path(__file__).resolve()
+        
+        try:
+            scheduler = create_scheduler(script_path, interval_minutes=args.interval)
+            
+            if args.install:
+                print("📦 Installing scheduler...")
+                print(f"   Type: {scheduler.__class__.__name__}")
+                print(f"   Interval: {args.interval} minutes")
+                print()
+                
+                if scheduler.install():
+                    print()
+                    if scheduler.start():
+                        print()
+                        print("✅ Scheduler installed and started successfully!")
+                        print()
+                        print("Next steps:")
+                        print("  1. Make sure TODOIST_TOKEN is set in .env file")
+                        print(f"  2. Check status: python {Path(__file__).name} --status")
+                        print("  3. View logs in logs/ and clean_logs/ directories")
+                    else:
+                        print("❌ Failed to start scheduler")
+                else:
+                    print("❌ Installation failed")
+            
+            elif args.uninstall:
+                print("🗑️  Uninstalling scheduler...")
+                if scheduler.uninstall():
+                    print("✅ Scheduler uninstalled successfully!")
+                else:
+                    print("❌ Uninstall failed")
+            
+            elif args.status:
+                print("📊 Scheduler Status")
+                print("=" * 50)
+                status = scheduler.status()
+                
+                print(f"Type: {scheduler.__class__.__name__}")
+                print(f"Installed: {'✅ Yes' if status['installed'] else '❌ No'}")
+                
+                if 'running' in status:
+                    print(f"Running: {'✅ Yes' if status['running'] else '❌ No'}")
+                
+                if status.get('plist_path'):
+                    print(f"Config: {status['plist_path']}")
+                elif status.get('service_path'):
+                    print(f"Service: {status['service_path']}")
+                    print(f"Timer: {status.get('timer_path')}")
+                elif status.get('task_name'):
+                    print(f"Task: {status['task_name']}")
+                
+                if status.get('output'):
+                    print("\nDetails:")
+                    print("-" * 50)
+                    print(status['output'])
+        
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        return
+    
+    # Regular execution (no scheduler management)
     # קריאת Token מ-environment variable
+    from dotenv import load_dotenv
+    load_dotenv()  # Load from .env file
+    
     todoist_token = os.getenv('TODOIST_TOKEN')
     
     if not todoist_token:
         print("❌ שגיאה: TODOIST_TOKEN לא הוגדר!")
         print("\nהוראות:")
         print("1. קבל Token מ: https://todoist.com/app/settings/integrations/developer")
-        print("2. הגדר אותו כך:")
-        print("   export TODOIST_TOKEN='your-token-here'")
+        print("2. ערוך את קובץ .env והוסף:")
+        print("   TODOIST_TOKEN=your-token-here")
         print("3. הרץ את הסקריפט שוב")
         return
     

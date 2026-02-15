@@ -1,424 +1,454 @@
-# Cron Agent - אוטומציה חכמה לניהול משימות
+# 🤖 Cron Agent - Cross-Platform Task Automation
 
-![Python](https://img.shields.io/badge/Python-3.8+-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
+**Intelligent task automation system** that reads tasks from Todoist, executes them via Cursor AI, and updates results automatically.
 
-## 📖 תיאור
+## ✨ Features
 
-**Cron Agent** היא מערכת אוטומטית שמשלבת בין אפליקציית ניהול משימות (Todoist), סוכן AI חכם (Cursor), ומתזמן משימות (Cron) כדי ליצור פתרון אוטומציה מתקדם.
-
-המערכת רצה כל 5 שניות, קוראת משימות חדשות מ-Todoist, שולחת אותן ל-Cursor AI לביצוע, ומעדכנת את התוצאות בחזרה.
-
-### 🎯 יתרונות
-
-- ⏰ **אוטומציה מלאה** - אין צורך לזכור לבדוק משימות
-- 🤖 **AI חכם** - Cursor מבצע משימות מורכבות
-- ⚡ **תגובה מהירה** - עיבוד כל 5 שניות
-- 📊 **מעקב מרכזי** - כל המשימות במקום אחד
-- 🔄 **עדכונים אוטומטיים** - תיעוד וסטטוס בזמן אמת
-
-## 🏗️ ארכיטקטורה
-
-```
-┌──────────────┐
-│   Todoist    │  ← משימות נוספות על ידי המשתמש
-│   (משימות)   │
-└──────┬───────┘
-       │ API Call
-       │ (כל 5 שניות)
-       ▼
-┌──────────────┐
-│  Cron Agent  │  ← Python Script
-│   (מתזמן)    │
-└──────┬───────┘
-       │ Send Tasks
-       ▼
-┌──────────────┐
-│  Cursor AI   │  ← מבצע משימות
-│   (מבצע)     │
-└──────┬───────┘
-       │ Results
-       ▼
-┌──────────────┐
-│   Update     │  ← עדכון אוטומטי
-│   Todoist    │
-└──────────────┘
-```
-
-## 🚀 התקנה מהירה
-
-### דרישות מקדימות
-
-- Python 3.8 ומעלה
-- חשבון Todoist (חינמי או Pro)
-- Cursor AI (אופציונלי לשלב זה)
-
-### שלב 1: שכפול הפרויקט
-
-```bash
-git clone https://github.com/yourusername/cron-agent.git
-cd cron-agent
-```
-
-### שלב 2: התקנת תלויות
-
-```bash
-pip install -r requirements.txt
-```
-
-### שלב 3: קבלת API Token מ-Todoist
-
-1. היכנס ל-[Todoist Settings](https://todoist.com/app/settings/integrations/developer)
-2. העתק את ה-API Token שלך
-3. שמור אותו במקום בטוח
-
-### שלב 4: הגדרת Token
-
-#### Linux/Mac:
-```bash
-export TODOIST_TOKEN='your-api-token-here'
-```
-
-#### Windows (PowerShell):
-```powershell
-$env:TODOIST_TOKEN='your-api-token-here'
-```
-
-#### או צור קובץ `.env`:
-```bash
-echo "TODOIST_TOKEN=your-api-token-here" > .env
-```
-
-### שלב 5: הרצה
-
-```bash
-python cron_agent.py
-```
-
-## 📋 שימוש
-
-### הוספת משימה ב-Todoist
-
-1. פתח את Todoist (Web/Mobile/Desktop)
-2. הוסף משימה חדשה, למשל:
-   - "שלח מייל ללקוח חשוב"
-   - "צור דוח שבועי"
-   - "עדכן מסד נתונים"
-
-### המערכת תטפל בזה אוטומטית
-
-תוך 5 שניות:
-1. ✅ המערכת תזהה את המשימה
-2. 🤖 Cursor AI יבצע אותה
-3. 📝 התוצאות יעודכנו ב-Todoist
-4. ✔️ המשימה תסומן כהושלמה
-
-### דוגמת פלט
-
-```
-==================================================
-⏰ 2025-02-15 14:30:00
-==================================================
-📋 נמצאו 3 משימות פעילות
-
-📝 מעבד משימה: שלח מייל ללקוח #12345
-🤖 Cursor AI מעבד: שלח מייל ללקוח #12345
-✅ המשימה הושלמה בהצלחה
-
-📝 מעבד משימה: צור דוח שבועי
-🤖 Cursor AI מעבד: צור דוח שבועי
-✅ המשימה הושלמה בהצלחה
-
---------------------------------------------------
-📊 סטטיסטיקות:
-   🎯 סה"כ משימות: 2
-   ✅ הצליחו: 2
-   ❌ נכשלו: 0
-   ⏱️  זמן פעילות: 0:02:30
---------------------------------------------------
-```
-
-## ⚙️ הגדרות מתקדמות
-
-### שינוי מרווח זמן
-
-ערוך את `cron_agent.py` ושנה את המרווח:
-
-```python
-# במקום 5 שניות
-agent.start(interval_seconds=5)
-
-# לדוגמה, כל 30 שניות
-agent.start(interval_seconds=30)
-
-# או כל דקה
-agent.start(interval_seconds=60)
-```
-
-### הפעלה רק עבור פרויקט מסוים
-
-הוסף סינון לפי פרויקט:
-
-```python
-def get_tasks(self, project_id: Optional[str] = None):
-    params = {}
-    if project_id:
-        params['project_id'] = project_id
-    
-    response = requests.get(
-        f"{self.base_url}/tasks",
-        headers=self.headers,
-        params=params
-    )
-    # ...
-```
-
-### הפעלה כ-Service (Linux)
-
-צור קובץ `cron-agent.service`:
-
-```ini
-[Unit]
-Description=Cron Agent - Todoist Automation
-After=network.target
-
-[Service]
-Type=simple
-User=youruser
-WorkingDirectory=/path/to/cron-agent
-Environment="TODOIST_TOKEN=your-token"
-ExecStart=/usr/bin/python3 /path/to/cron-agent/cron_agent.py
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-הפעל:
-```bash
-sudo cp cron-agent.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable cron-agent
-sudo systemctl start cron-agent
-```
-
-## 🔧 פיתוח והרחבה
-
-### הוספת אינטגרציה חדשה
-
-#### דוגמה: שליחת מיילים דרך Gmail
-
-```python
-import smtplib
-from email.mime.text import MIMEText
-
-class EmailService:
-    def __init__(self, email: str, password: str):
-        self.email = email
-        self.password = password
-    
-    def send_email(self, to: str, subject: str, body: str):
-        msg = MIMEText(body)
-        msg['Subject'] = subject
-        msg['From'] = self.email
-        msg['To'] = to
-        
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-            smtp.login(self.email, self.password)
-            smtp.send_message(msg)
-
-# שימוש ב-CursorAgent
-class CursorAgent:
-    def __init__(self):
-        self.email_service = EmailService(
-            os.getenv('GMAIL_EMAIL'),
-            os.getenv('GMAIL_PASSWORD')
-        )
-    
-    def _analyze_and_execute(self, content: str) -> str:
-        if "שלח מייל" in content:
-            # נתח את הפרטים מה-content
-            to, subject, body = self._parse_email_request(content)
-            self.email_service.send_email(to, subject, body)
-            return f"✉️ מייל נשלח ל-{to}"
-```
-
-### הוספת לוגים מתקדמים
-
-```python
-import logging
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('cron_agent.log'),
-        logging.StreamHandler()
-    ]
-)
-
-logger = logging.getLogger('CronAgent')
-```
-
-## 🔒 אבטחה
-
-### שמירה על ה-Token
-
-❌ **לעולם אל תכניס את ה-Token לקוד!**
-
-✅ השתמש ב-environment variables או `.env`:
-```bash
-# .env
-TODOIST_TOKEN=your-secret-token-here
-```
-
-✅ הוסף `.env` ל-`.gitignore`:
-```bash
-echo ".env" >> .gitignore
-```
-
-### הרשאות קבצים
-
-```bash
-# הגבל גישה לקובץ .env
-chmod 600 .env
-
-# הגבל גישה לקובץ הקונפיגורציה
-chmod 600 config.json
-```
-
-## 📊 מעקב וניטור
-
-### לוגים נקיים (Clean Logs)
-
-המערכת יוצרת **שני סוגי לוגים**:
-
-#### 1. לוג רגיל (Console)
-כל הפעילות נרשמת בקונסול כולל debugging, שגיאות, וסטטיסטיקות.
-
-```bash
-python cron_agent.py >> cron_agent.log 2>&1
-```
-
-#### 2. לוג נקי (Clean Logs) ⭐ חדש!
-לוג מיוחד שמראה **רק** את השיחות עם Cursor AI:
-- 📤 הפרומפט ששלחת
-- 📥 התשובה שקיבלת
-- ❌ **בלי** debugging, מחשבות, או שגיאות
-
-**מיקום:** `clean_logs/conversation_YYYY-MM-DD.log`
-
-**דוגמת תוכן:**
-```
-======================================================================
-[2025-02-15 14:30:00] Task ID: 12345
-
-📤 PROMPT:
-שלח מייל ללקוח חשוב
-
-📥 RESPONSE:
-✉️ נשלח מייל אוטומטי ללקוח
-
-======================================================================
-```
-
-**צפייה בלוג הנקי:**
-```bash
-# הצג את הלוג של היום
-cat clean_logs/conversation_$(date +%Y-%m-%d).log
-
-# מעקב חי
-tail -f clean_logs/conversation_$(date +%Y-%m-%d).log
-```
-
-**למה זה שימושי?**
-- 📊 ניתוח שיחות מול AI
-- 📈 מעקב אחר איכות תשובות
-- 🎓 למידה והשבחת פרומפטים
-- 📝 תיעוד להצגה (בלי טכניקליות)
-- 🔍 סקירה מהירה של פעילות
-
-### סטטיסטיקות
-
-המערכת מציגה סטטיסטיקות בזמן אמת:
-- סך משימות שעובדו
-- משימות שהצליחו
-- משימות שנכשלו
-- זמן פעילות
-
-## 🐛 פתרון בעיות
-
-### הסקריפט לא מוצא משימות
-
-**בעיה:** "📋 נמצאו 0 משימות פעילות"
-
-**פתרון:**
-1. ודא שיש משימות פתוחות ב-Todoist
-2. בדוק שה-Token תקין
-3. ודא שהמשימות לא סומנו כהושלמו
-
-### שגיאת Authentication
-
-**בעיה:** "401 Unauthorized"
-
-**פתרון:**
-1. בדוק שה-TODOIST_TOKEN מוגדר נכון
-2. העתק Token חדש מ-Todoist Settings
-3. ודא שאין רווחים בהתחלה/סוף ה-Token
-
-### המערכת לא מתעדכנת
-
-**בעיה:** משימות לא מתעדכנות ב-Todoist
-
-**פתרון:**
-1. בדוק חיבור אינטרנט
-2. ודא שה-API של Todoist זמין
-3. בדוק את הלוגים לשגיאות
-
-## 🤝 תרומה לפרויקט
-
-נשמח לקבל תרומות! אפשר:
-- 🐛 לדווח על באגים
-- 💡 להציע פיצ'רים חדשים
-- 📝 לשפר תיעוד
-- 🔧 להוסיף קוד
-
-### תהליך:
-1. Fork את הפרויקט
-2. צור branch חדש (`git checkout -b feature/amazing-feature`)
-3. Commit את השינויים (`git commit -m 'Add amazing feature'`)
-4. Push ל-branch (`git push origin feature/amazing-feature`)
-5. פתח Pull Request
-
-## 📝 רישיון
-
-פרויקט זה מופץ תחת רישיון MIT. ראה `LICENSE` לפרטים.
-
-## 🙏 תודות
-
-- [Todoist](https://todoist.com) - אפליקציית ניהול משימות מעולה
-- [Cursor](https://cursor.sh) - עורך קוד חכם עם AI
-- [Schedule](https://schedule.readthedocs.io/) - ספריית תזמון פשוטה וחכמה
-
-## 📧 יצירת קשר
-
-- 📧 Email: your.email@example.com
-- 🐦 Twitter: [@yourhandle](https://twitter.com/yourhandle)
-- 💼 LinkedIn: [Your Name](https://linkedin.com/in/yourname)
-
-## 🗺️ מפת דרכים
-
-- [ ] תמיכה באפליקציות משימות נוספות (Asana, Trello)
-- [ ] ממשק Web לניהול
-- [ ] תמיכה במשימות מקבילות
-- [ ] אינטגרציה מלאה עם Cursor API
-- [ ] דשבורד ניטור בזמן אמת
-- [ ] תמיכה ב-webhooks
-- [ ] מצב dry-run לבדיקות
+- 🌍 **Cross-Platform**: Works on macOS, Linux, and Windows
+- ⏰ **Smart Scheduling**: Uses native schedulers (LaunchAgents/systemd/cron/Task Scheduler)
+- 🤖 **AI Integration**: Processes tasks with Cursor AI
+- 📝 **Clean Logs**: Separate technical and conversation logs
+- 📊 **Statistics**: Real-time execution statistics
+- 🔄 **Auto-sync**: Automatic Todoist integration
 
 ---
 
-**נבנה עם ❤️ על ידי [שמך]**
+## 🚀 Quick Start
 
-⭐ אם אהבת את הפרויקט, תן לנו כוכב ב-GitHub!
+### Prerequisites
+
+- **Python 3.8+** (only requirement!)
+- Todoist account with API token
+
+### Installation
+
+```bash
+# Clone repository
+git clone <your-repo-url>
+cd cron-agent
+
+# Run cross-platform setup
+python3 setup.py        # macOS/Linux
+python setup.py         # Windows
+```
+
+### Configuration
+
+1. **Get Todoist API Token**:
+   - Visit: https://todoist.com/app/settings/integrations/developer
+   - Copy your API Token
+
+2. **Configure `.env` file**:
+   ```bash
+   # Edit .env file
+   nano .env
+   
+   # Add your token
+   TODOIST_TOKEN=your_token_here
+   ```
+
+3. **Install Scheduler**:
+   ```bash
+   python3 cron_agent.py --install
+   ```
+
+### Usage
+
+```bash
+# Check status
+python3 cron_agent.py --status
+
+# Manual run (for testing)
+python3 cron_agent.py
+
+# Uninstall scheduler
+python3 cron_agent.py --uninstall
+```
+
+---
+
+## 🏗️ Architecture
+
+### Cross-Platform Design
+
+The system uses an **abstraction layer** that automatically detects your OS and uses the appropriate scheduler:
+
+```
+┌─────────────────────────────────────┐
+│        cron_agent.py                │
+│     (Core Logic - OS Agnostic)      │
+└───────────┬─────────────────────────┘
+            │
+    ┌───────┴────────┐
+    │ scheduler/     │
+    │  factory.py    │
+    │ (Auto-detect)  │
+    └───────┬────────┘
+            │
+    ┌───────┴────────────────┐
+    │                        │
+┌───▼────┐  ┌────▼─────┐  ┌─▼────────┐
+│ macOS  │  │  Linux   │  │ Windows  │
+│LaunchD │  │systemd   │  │   Task   │
+│        │  │  /cron   │  │Scheduler │
+└────────┘  └──────────┘  └──────────┘
+```
+
+### Directory Structure
+
+```
+cron-agent/
+├── cron_agent.py           # Main application
+├── setup.py               # Cross-platform setup script
+├── requirements.txt       # Python dependencies
+├── .env                   # Configuration (not committed)
+│
+├── scheduler/             # Scheduler abstraction layer
+│   ├── __init__.py
+│   ├── base.py           # Abstract base class
+│   ├── factory.py        # OS detection & factory
+│   ├── launchd.py        # macOS LaunchAgents
+│   ├── systemd.py        # Linux systemd timers
+│   ├── cron.py           # Linux cron (fallback)
+│   └── windows_task.py   # Windows Task Scheduler
+│
+├── logs/                  # Technical logs (stdout/stderr)
+├── clean_logs/           # Conversation logs (prompts/responses)
+├── docs/                 # Documentation
+│   └── setup-guide.html  # Interactive setup guide
+│
+└── venv/                 # Virtual environment (auto-created)
+```
+
+---
+
+## 📖 Platform-Specific Details
+
+### macOS (LaunchAgents)
+
+**Features**:
+- ✅ Survives sleep/wake cycles
+- ✅ No sudo required
+- ✅ Runs on user login
+- ✅ Native macOS integration
+
+**Location**: `~/Library/LaunchAgents/com.cursor.cronagent.plist`
+
+**Management**:
+```bash
+# Install
+python3 cron_agent.py --install
+
+# Check status
+launchctl list | grep cronagent
+
+# View logs
+tail -f logs/stdout.log
+
+# Uninstall
+python3 cron_agent.py --uninstall
+```
+
+---
+
+### Linux (systemd or cron)
+
+**systemd** (preferred, modern distros):
+- ✅ Reliable scheduling
+- ✅ Built-in logging (journalctl)
+- ✅ No sudo required (user units)
+
+**Location**: `~/.config/systemd/user/cronagent.{service,timer}`
+
+**Management**:
+```bash
+# Install
+python3 cron_agent.py --install
+
+# Check status
+systemctl --user status cronagent.timer
+
+# View logs
+journalctl --user -u cronagent.service -f
+
+# Uninstall
+python3 cron_agent.py --uninstall
+```
+
+**cron** (fallback, universal):
+- ✅ Works on all Linux systems
+- ✅ Simple and reliable
+- ⚠️ May miss schedules if system sleeping
+
+**Location**: User crontab
+
+**Management**:
+```bash
+# Install
+python3 cron_agent.py --install
+
+# Check crontab
+crontab -l
+
+# View logs
+tail -f logs/cron.log
+
+# Uninstall
+python3 cron_agent.py --uninstall
+```
+
+---
+
+### Windows (Task Scheduler)
+
+**Features**:
+- ✅ Native Windows integration
+- ✅ GUI management available
+- ✅ Survives sleep/hibernate
+- ⚠️ May require admin privileges
+
+**Location**: Task Scheduler Library
+
+**Management**:
+```bash
+# Install
+python cron_agent.py --install
+
+# Check status (CLI)
+schtasks /Query /TN "CursorCronAgent" /FO LIST
+
+# Check status (GUI)
+# Press Win+R, type: taskschd.msc
+
+# Uninstall
+python cron_agent.py --uninstall
+```
+
+---
+
+## 📝 Logging
+
+### Two Types of Logs
+
+1. **Technical Logs** (`logs/`):
+   - stdout.log - Standard output
+   - stderr.log - Error messages
+   - Full debugging information
+
+2. **Clean Logs** (`clean_logs/`):
+   - conversation_YYYY-MM-DD.log
+   - Only prompts and AI responses
+   - Perfect for presentations/documentation
+
+### View Logs
+
+```bash
+# View clean logs (conversations only)
+./view_clean_logs.sh
+
+# Analyze logs (statistics)
+python analyze_clean_logs.py
+
+# View technical logs
+tail -f logs/stdout.log
+```
+
+---
+
+## 🔧 Configuration
+
+### Scheduler Interval
+
+Default: 5 minutes
+
+Change during installation:
+```bash
+python3 cron_agent.py --install --interval 10  # 10 minutes
+```
+
+### Environment Variables
+
+Edit `.env` file:
+```bash
+# Todoist Configuration
+TODOIST_TOKEN=your_token_here
+
+# Optional: Custom log directory
+CLEAN_LOGS_DIR=clean_logs
+```
+
+---
+
+## 🛠️ Development
+
+### Setup Development Environment
+
+```bash
+# Install with dev dependencies
+python3 setup.py
+
+# Run tests
+pytest tests/
+
+# Format code
+black cron_agent.py scheduler/
+
+# Lint
+flake8 cron_agent.py scheduler/
+```
+
+### Manual Testing
+
+```bash
+# Run once manually (without scheduler)
+./venv/bin/python cron_agent.py
+
+# Test with specific token
+TODOIST_TOKEN=test_token ./venv/bin/python cron_agent.py
+```
+
+---
+
+## 🚨 Troubleshooting
+
+### "Module not found" error
+
+**Problem**: Running with system Python instead of venv
+
+**Solution**:
+```bash
+# Use venv Python
+./venv/bin/python cron_agent.py --status  # macOS/Linux
+.\venv\Scripts\python cron_agent.py --status  # Windows
+```
+
+### Scheduler not running
+
+**macOS**:
+```bash
+# Check if loaded
+launchctl list | grep cronagent
+
+# Reload
+python3 cron_agent.py --uninstall
+python3 cron_agent.py --install
+```
+
+**Linux (systemd)**:
+```bash
+# Check timer status
+systemctl --user status cronagent.timer
+
+# Check last run
+systemctl --user list-timers
+
+# Reload
+systemctl --user daemon-reload
+systemctl --user restart cronagent.timer
+```
+
+**Linux (cron)**:
+```bash
+# Check crontab
+crontab -l
+
+# Check syslog
+grep CRON /var/log/syslog
+```
+
+**Windows**:
+```bash
+# Check task
+schtasks /Query /TN "CursorCronAgent" /V /FO LIST
+
+# Run manually
+schtasks /Run /TN "CursorCronAgent"
+```
+
+### No tasks being processed
+
+1. **Check Todoist token**:
+   ```bash
+   cat .env
+   # Verify TODOIST_TOKEN is set
+   ```
+
+2. **Test API connection**:
+   ```bash
+   curl -H "Authorization: Bearer YOUR_TOKEN" \
+        https://api.todoist.com/rest/v2/tasks
+   ```
+
+3. **Check logs**:
+   ```bash
+   tail -f logs/stdout.log
+   tail -f logs/stderr.log
+   ```
+
+---
+
+## 📊 Statistics
+
+View real-time statistics:
+```bash
+# Analyze conversation logs
+python analyze_clean_logs.py
+
+# View in clean log files
+tail -n 20 clean_logs/conversation_$(date +%Y-%m-%d).log
+```
+
+---
+
+## 🔐 Security
+
+- ✅ API tokens stored in `.env` (not committed to git)
+- ✅ Runs in user context (no root/admin required on macOS/Linux)
+- ✅ Logs stored locally
+- ⚠️ Keep `.env` file secure
+
+---
+
+## 📚 Documentation
+
+- **Interactive Setup Guide**: Open `docs/setup-guide.html` in browser
+- **Changelog**: See `CHANGELOG.md`
+- **Clean Logs Guide**: See `CLEAN_LOGS_GUIDE.md`
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open Pull Request
+
+---
+
+## 📄 License
+
+[Add your license here]
+
+---
+
+## 🙏 Acknowledgments
+
+- Todoist API for task management
+- Cursor AI for intelligent execution
+- Python community for excellent libraries
+
+---
+
+## 📞 Support
+
+- Issues: [GitHub Issues](your-repo-url/issues)
+- Documentation: [Wiki](your-repo-url/wiki)
+- Email: your-email@example.com
+
+---
+
+**Built with ❤️ for cross-platform automation**
+
+Version: 2.0.0 - Cross-Platform Edition
