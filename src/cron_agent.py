@@ -243,7 +243,7 @@ class TodoistAPI:
 
 class CursorAgent:
     """
-    Cursor AI Agent using Cursor CLI
+    Cursor AI Agent using Cursor CLI (REQUIRED)
     """
     
     DEFAULT_CODE_LOCATION = "~/personal/cron agent"
@@ -251,7 +251,6 @@ class CursorAgent:
     def __init__(
         self,
         clean_logger: CleanLogger = None,
-        use_cli: bool = True,
         code_location: Optional[str] = None,
     ):
         """
@@ -259,20 +258,32 @@ class CursorAgent:
         
         Args:
             clean_logger: Logger for conversations
-            use_cli: Whether to use Cursor CLI (True) or fallback simulation (False)
             code_location: Path to the codebase for Cursor context
         """
         self.execution_log = []
         self.clean_logger = clean_logger
-        self.use_cli = use_cli
         self.code_location = code_location or os.getenv(
             "CODE_LOCATION", self.DEFAULT_CODE_LOCATION
         )
         self.cursor_cli_path = self._find_cursor_cli()
+        
+        # Validate Cursor CLI is available
+        if not self.cursor_cli_path:
+            print()
+            print("❌ FATAL ERROR: Cursor CLI is required but not found!")
+            print()
+            print("Installation Instructions:")
+            print("1. Visit: https://cursor.sh")
+            print("2. Download and install Cursor")
+            print("3. Enable CLI: Cursor > Install 'cursor' command")
+            print()
+            print("After installing, run setup again: ./cronagent setup")
+            print()
+            sys.exit(1)
     
     def _find_cursor_cli(self) -> Optional[str]:
         """
-        Find Cursor CLI executable
+        Find Cursor CLI executable (REQUIRED)
         
         Returns:
             Path to cursor CLI or None if not found
@@ -289,7 +300,6 @@ class CursorAgent:
                 print(f"✅ Found Cursor CLI: {path}")
                 return path
             else:
-                print("⚠️  Cursor CLI not found, will use fallback mode")
                 return None
         except Exception as e:
             print(f"⚠️  Error finding Cursor CLI: {e}")
@@ -297,7 +307,7 @@ class CursorAgent:
     
     def execute(self, task_content: str, task_id: str = None) -> Dict[str, any]:
         """
-        Execute task using Cursor AI
+        Execute task using Cursor AI CLI
         
         Args:
             task_content: Task description
@@ -311,12 +321,8 @@ class CursorAgent:
         start_time = time.time()
         timestamp = datetime.now().strftime("%H:%M:%S")
         
-        # Try to use Cursor CLI if available
-        if self.use_cli and self.cursor_cli_path:
-            action_taken = self._execute_with_cli(task_content)
-        else:
-            # Fallback to simple analysis
-            action_taken = self._analyze_and_execute(task_content)
+        # Execute with Cursor CLI
+        action_taken = self._execute_with_cli(task_content)
         
         duration = time.time() - start_time
         
@@ -405,22 +411,25 @@ class CursorAgent:
                     print(f"   ✅ Got response from Cursor AI ({len(response)} chars)")
                     return response
                 else:
-                    print("   ⚠️  Empty response from Cursor CLI")
-                    return self._analyze_and_execute(task_content)
+                    error_msg = "Empty response from Cursor CLI"
+                    print(f"   ❌ {error_msg}")
+                    return f"❌ Error: {error_msg}"
             else:
                 error_msg = result.stderr.strip() if result.stderr else "Unknown error"
-                print(f"   ⚠️  Cursor CLI error (code {result.returncode}): {error_msg[:200]}")
-                # Fallback to simple analysis
-                return self._analyze_and_execute(task_content)
-                
+                print(f"   ❌ Cursor CLI error (code {result.returncode}): {error_msg[:200]}")
+                return f"❌ Error: {error_msg[:200]}"
+        
         except subprocess.TimeoutExpired:
-            print("   ⚠️  Cursor CLI timeout (>120s), using fallback")
-            return self._analyze_and_execute(task_content)
+            error_msg = "Cursor CLI timeout (>120s)"
+            print(f"   ❌ {error_msg}")
+            return f"❌ Error: {error_msg}"
         except Exception as e:
-            print(f"   ⚠️  Error running Cursor CLI: {e}")
-            return self._analyze_and_execute(task_content)
-    
-    def _analyze_and_execute(self, content: str) -> str:
+            error_msg = f"Error running Cursor CLI: {e}"
+            print(f"   ❌ {error_msg}")
+            return f"❌ Error: {error_msg}"
+
+
+class CronAgent:
         """
         Analyze and execute the task
         
@@ -501,11 +510,6 @@ class CursorAgent:
         
         else:
             # Default to addition if no operation detected
-            result = sum(nums)
-            return f"🧮 Sum of {', '.join(str(n) for n in nums)} = {result:g}"
-
-
-class CronAgent:
     """
     Main engine of the system - schedules and executes tasks
     """
@@ -514,7 +518,6 @@ class CronAgent:
         self,
         todoist_token: str,
         clean_log_dir: str = "clean_logs",
-        use_cursor_cli: bool = True,
         code_location: Optional[str] = None,
     ):
         """
@@ -523,14 +526,12 @@ class CronAgent:
         Args:
             todoist_token: Todoist API Token
             clean_log_dir: Directory for clean log
-            use_cursor_cli: Whether to use Cursor CLI (True) or fallback simulation (False)
             code_location: Path to the codebase for Cursor context
         """
         self.todoist = TodoistAPI(todoist_token)
         self.clean_logger = CleanLogger(clean_log_dir)
         self.cursor = CursorAgent(
             clean_logger=self.clean_logger,
-            use_cli=use_cursor_cli,
             code_location=code_location,
         )
         self.stats = {
@@ -862,26 +863,18 @@ def main():
     # Get interval from environment variable (in seconds)
     interval_seconds = int(os.getenv('REFRESH_INTERVAL_SECONDS', 300))
     
-    # Check if Cursor CLI should be used
-    use_cursor_cli = os.getenv('USE_CURSOR_CLI', 'true').lower() in ('true', '1', 'yes')
-    
     # Get code location from environment
     code_location = os.getenv('CODE_LOCATION', CursorAgent.DEFAULT_CODE_LOCATION)
     
-    if use_cursor_cli:
-        print("🤖 Cursor CLI mode: ENABLED")
-        print("   Tasks will be executed by real Cursor AI")
-        print(f"   Code location: {code_location}")
-    else:
-        print("⚠️  Cursor CLI mode: DISABLED")
-        print("   Tasks will use fallback simulation")
+    print("🤖 Cursor CLI mode: ENABLED (required)")
+    print("   Tasks will be executed by real Cursor AI")
+    print(f"   Code location: {code_location}")
     print()
     
     # Create the agent
     agent = CronAgent(
         todoist_token,
         clean_log_dir=clean_log_dir,
-        use_cursor_cli=use_cursor_cli,
         code_location=code_location,
     )
     

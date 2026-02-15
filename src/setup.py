@@ -98,7 +98,7 @@ class SetupManager:
         print()
     
     def check_cursor_cli(self):
-        """Check and setup Cursor CLI authentication."""
+        """Check and validate Cursor CLI installation (REQUIRED)."""
         print(f"{Colors.BLUE}🤖 Checking Cursor CLI...{Colors.ENDC}")
         
         # Check if cursor CLI is installed
@@ -111,11 +111,23 @@ class SetupManager:
             )
             
             if result.returncode != 0:
-                print(f"{Colors.WARNING}⚠️  Cursor CLI not found{Colors.ENDC}")
-                print(f"   Agent will use fallback simulation mode")
-                print(f"   To enable AI mode, install Cursor from: https://cursor.sh")
                 print()
-                return
+                print(f"{Colors.FAIL}❌ ERROR: Cursor CLI is required but not found{Colors.ENDC}")
+                print()
+                print(f"{Colors.BOLD}Cursor CLI is mandatory for this agent to work.{Colors.ENDC}")
+                print()
+                print(f"{Colors.CYAN}Installation Instructions:{Colors.ENDC}")
+                print(f"1. Visit: {Colors.BOLD}https://cursor.sh{Colors.ENDC}")
+                print(f"2. Download and install Cursor")
+                print(f"3. Open Cursor and go to Settings")
+                print(f"4. Enable CLI by running in Cursor terminal:")
+                print(f"   {Colors.BOLD}Cursor > Install 'cursor' command{Colors.ENDC}")
+                print(f"5. Or run manually: ln -s /Applications/Cursor.app/Contents/Resources/app/bin/cursor /usr/local/bin/cursor")
+                print()
+                print(f"{Colors.WARNING}After installing Cursor CLI, run setup again:{Colors.ENDC}")
+                print(f"   {Colors.BOLD}./cronagent setup{Colors.ENDC}")
+                print()
+                sys.exit(1)
             
             cursor_path = result.stdout.strip()
             print(f"{Colors.GREEN}✅ Found Cursor CLI: {cursor_path}{Colors.ENDC}")
@@ -185,27 +197,31 @@ class SetupManager:
                             print()
                         else:
                             print()
-                            print(f"{Colors.WARNING}⚠️  Login was not completed{Colors.ENDC}")
-                            print(f"   You can login later by running: cursor agent login")
-                            print(f"   Agent will use fallback simulation mode until then")
+                            print(f"{Colors.FAIL}❌ ERROR: Cursor login failed{Colors.ENDC}")
+                            print(f"   Login is required for the agent to work.")
+                            print(f"   Please run: {Colors.BOLD}cursor agent login{Colors.ENDC}")
                             print()
+                            sys.exit(1)
                             
                     except subprocess.TimeoutExpired:
                         print()
-                        print(f"{Colors.WARNING}⚠️  Login timeout{Colors.ENDC}")
-                        print(f"   You can login later by running: cursor agent login")
+                        print(f"{Colors.FAIL}❌ ERROR: Login timeout{Colors.ENDC}")
+                        print(f"   Please try again: {Colors.BOLD}cursor agent login{Colors.ENDC}")
                         print()
+                        sys.exit(1)
                     except Exception as e:
                         print()
-                        print(f"{Colors.WARNING}⚠️  Error during login: {e}{Colors.ENDC}")
-                        print(f"   You can login later by running: cursor agent login")
+                        print(f"{Colors.FAIL}❌ ERROR: Login error: {e}{Colors.ENDC}")
+                        print(f"   Please try: {Colors.BOLD}cursor agent login{Colors.ENDC}")
                         print()
+                        sys.exit(1)
                 else:
                     print()
-                    print(f"{Colors.WARNING}⚠️  Skipping Cursor login{Colors.ENDC}")
-                    print(f"   Agent will use fallback simulation mode")
-                    print(f"   To login later, run: cursor agent login")
+                    print(f"{Colors.FAIL}❌ ERROR: Cursor login is required{Colors.ENDC}")
+                    print(f"   The agent cannot work without Cursor authentication.")
+                    print(f"   Please run setup again and login when prompted.")
                     print()
+                    sys.exit(1)
                     
         except subprocess.TimeoutExpired:
             print(f"{Colors.WARNING}⚠️  Timeout checking Cursor status{Colors.ENDC}")
@@ -325,10 +341,6 @@ TODOIST_TOKEN={token}
 # Refresh interval for task processing (in seconds)
 # Examples: 300 = 5 minutes, 600 = 10 minutes, 60 = 1 minute
 REFRESH_INTERVAL_SECONDS=300
-
-# Use Cursor CLI for task execution (true/false)
-# Set to true to use real Cursor AI, false for fallback simulation
-USE_CURSOR_CLI=true
 """
         env_file.write_text(env_content)
         print()
