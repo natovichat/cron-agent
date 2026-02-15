@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-ניתוח לוגים נקיים - Clean Logs Analyzer
-=========================================
+Clean Logs Analyzer
+===================
 
-סקריפט לניתוח הלוגים הנקיים והצגת סטטיסטיקות מעניינות.
+Script to analyze clean logs and show interesting statistics.
 
 Usage:
     python analyze_clean_logs.py
@@ -19,7 +19,7 @@ from typing import Dict, List, Tuple
 
 class CleanLogsAnalyzer:
     """
-    מנתח לוגים נקיים
+    Analyzer for clean logs
     """
     
     def __init__(self, log_dir: str = "clean_logs"):
@@ -28,33 +28,33 @@ class CleanLogsAnalyzer:
     
     def load_logs(self):
         """
-        טעינת כל קבצי הלוג
+        Load all log files
         """
         if not self.log_dir.exists():
-            print(f"❌ תיקייה לא קיימת: {self.log_dir}")
+            print(f"❌ Directory does not exist: {self.log_dir}")
             return
         
         log_files = sorted(self.log_dir.glob("conversation_*.log"))
         
         if not log_files:
-            print("⚠️  לא נמצאו קבצי לוג")
+            print("⚠️  No log files found")
             return
         
-        print(f"📂 קורא {len(log_files)} קבצי לוג...")
+        print(f"📂 Reading {len(log_files)} log files...")
         
         for log_file in log_files:
             self._parse_log_file(log_file)
         
-        print(f"✅ נטענו {len(self.conversations)} שיחות\n")
+        print(f"✅ Loaded {len(self.conversations)} conversations\n")
     
     def _parse_log_file(self, log_file: Path):
         """
-        פענוח קובץ לוג בודד
+        Parse a single log file
         """
         with open(log_file, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # חיפוש כל השיחות
+        # Search for all conversations
         pattern = r'\[([^\]]+)\](?:\s+Task ID: ([^\n]+))?\s+📤 PROMPT:\s+([^\n]+(?:\n(?!📥)[^\n]+)*)\s+📥 RESPONSE:\s+([^\n]+(?:\n(?!=====)[^\n]+)*)'
         
         matches = re.finditer(pattern, content, re.MULTILINE)
@@ -76,14 +76,14 @@ class CleanLogsAnalyzer:
     
     def analyze(self):
         """
-        ניתוח הלוגים
+        Analyze the logs
         """
         if not self.conversations:
-            print("❌ אין שיחות לניתוח")
+            print("❌ No conversations to analyze")
             return
         
         print("="*70)
-        print("📊 ניתוח לוגים נקיים")
+        print("📊 Clean Logs Analysis")
         print("="*70)
         print()
         
@@ -94,55 +94,55 @@ class CleanLogsAnalyzer:
     
     def _general_stats(self):
         """
-        סטטיסטיקות כלליות
+        General statistics
         """
-        print("📈 סטטיסטיקות כלליות:")
+        print("📈 General Statistics:")
         print("-" * 70)
-        print(f"   סה\"כ שיחות: {len(self.conversations)}")
+        print(f"   Total conversations: {len(self.conversations)}")
         
-        # תאריכים
+        # Dates
         timestamps = [c['timestamp'] for c in self.conversations if c['timestamp']]
         if timestamps:
             first_date = min(timestamps).strftime("%Y-%m-%d")
             last_date = max(timestamps).strftime("%Y-%m-%d")
-            print(f"   תקופה: {first_date} - {last_date}")
+            print(f"   Period: {first_date} - {last_date}")
         
-        # אורכי פרומפטים
+        # Prompt lengths
         prompt_lengths = [len(c['prompt']) for c in self.conversations]
         avg_prompt_length = sum(prompt_lengths) / len(prompt_lengths)
-        print(f"   אורך פרומפט ממוצע: {avg_prompt_length:.0f} תווים")
+        print(f"   Average prompt length: {avg_prompt_length:.0f} characters")
         
-        # אורכי תשובות
+        # Response lengths
         response_lengths = [len(c['response']) for c in self.conversations]
         avg_response_length = sum(response_lengths) / len(response_lengths)
-        print(f"   אורך תשובה ממוצע: {avg_response_length:.0f} תווים")
+        print(f"   Average response length: {avg_response_length:.0f} characters")
         print()
     
     def _temporal_analysis(self):
         """
-        ניתוח זמני
+        Temporal analysis
         """
-        print("⏰ ניתוח זמני:")
+        print("⏰ Temporal Analysis:")
         print("-" * 70)
         
         timestamps = [c['timestamp'] for c in self.conversations if c['timestamp']]
         if not timestamps:
-            print("   אין נתוני זמן זמינים\n")
+            print("   No timestamp data available\n")
             return
         
-        # שיחות לפי תאריך
+        # Conversations by date
         dates = [t.date() for t in timestamps]
         date_counter = Counter(dates)
         
-        print("   שיחות לפי יום:")
+        print("   Conversations by day:")
         for date, count in sorted(date_counter.items()):
             print(f"      {date}: {'█' * count} {count}")
         
-        # שיחות לפי שעה
+        # Conversations by hour
         hours = [t.hour for t in timestamps]
         hour_counter = Counter(hours)
         
-        print("\n   שיחות לפי שעה:")
+        print("\n   Conversations by hour:")
         for hour in range(24):
             count = hour_counter.get(hour, 0)
             if count > 0:
@@ -152,23 +152,23 @@ class CleanLogsAnalyzer:
     
     def _response_types_analysis(self):
         """
-        ניתוח סוגי תשובות
+        Response types analysis
         """
-        print("🎯 סוגי תשובות:")
+        print("🎯 Response Types:")
         print("-" * 70)
         
-        # חיפוש אמוג'י בתשובות
+        # Search for emojis in responses
         emojis = []
         for conv in self.conversations:
             response = conv['response']
-            # חיפוש אמוג'י נפוצים
-            if '✉️' in response or 'מייל' in response.lower():
+            # Search for common emojis
+            if '✉️' in response or 'email' in response.lower():
                 emojis.append('✉️ Email')
-            elif '📊' in response or 'דוח' in response.lower():
+            elif '📊' in response or 'report' in response.lower():
                 emojis.append('📊 Report')
-            elif '💾' in response or 'גיבוי' in response.lower():
+            elif '💾' in response or 'backup' in response.lower():
                 emojis.append('💾 Backup')
-            elif '🔄' in response or 'עדכון' in response.lower():
+            elif '🔄' in response or 'update' in response.lower():
                 emojis.append('🔄 Update')
             elif '✅' in response:
                 emojis.append('✅ Success')
@@ -185,18 +185,17 @@ class CleanLogsAnalyzer:
     
     def _prompt_analysis(self):
         """
-        ניתוח פרומפטים
+        Prompt analysis
         """
-        print("💬 ניתוח פרומפטים:")
+        print("💬 Prompt Analysis:")
         print("-" * 70)
         
-        # מילות מפתח נפוצות
+        # Common keywords
         all_prompts = ' '.join([c['prompt'].lower() for c in self.conversations])
         
-        # ספירת מילים נפוצות (עברית ואנגלית)
-        keywords = ['מייל', 'email', 'דוח', 'report', 'עדכן', 'update', 
-                   'גיבוי', 'backup', 'שלח', 'send', 'צור', 'create',
-                   'בדוק', 'check', 'נתח', 'analyze']
+        # Count common words (English)
+        keywords = ['email', 'report', 'update', 'backup', 'send', 'create',
+                   'check', 'analyze', 'generate', 'build', 'test', 'fix']
         
         keyword_counts = {}
         for keyword in keywords:
@@ -205,45 +204,45 @@ class CleanLogsAnalyzer:
                 keyword_counts[keyword] = count
         
         if keyword_counts:
-            print("   מילות מפתח נפוצות:")
+            print("   Common keywords:")
             for keyword, count in sorted(keyword_counts.items(), key=lambda x: x[1], reverse=True):
-                print(f"      {keyword:15} {count} פעמים")
+                print(f"      {keyword:15} {count} times")
         
         print()
         
-        # הפרומפטים הארוכים ביותר
-        print("   הפרומפטים הארוכים ביותר:")
+        # Longest prompts
+        print("   Longest prompts:")
         sorted_by_length = sorted(self.conversations, key=lambda x: len(x['prompt']), reverse=True)
         for i, conv in enumerate(sorted_by_length[:3], 1):
             prompt_preview = conv['prompt'][:60] + "..." if len(conv['prompt']) > 60 else conv['prompt']
-            print(f"      {i}. ({len(conv['prompt'])} תווים) {prompt_preview}")
+            print(f"      {i}. ({len(conv['prompt'])} chars) {prompt_preview}")
         print()
     
     def export_summary(self, output_file: str = "logs_summary.txt"):
         """
-        ייצוא סיכום לקובץ
+        Export summary to file
         """
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write("="*70 + "\n")
-            f.write("📊 סיכום ניתוח לוגים נקיים\n")
+            f.write("📊 Clean Logs Analysis Summary\n")
             f.write("="*70 + "\n\n")
             
-            f.write(f"נוצר: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write(f"סה\"כ שיחות: {len(self.conversations)}\n\n")
+            f.write(f"Created: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"Total conversations: {len(self.conversations)}\n\n")
             
-            f.write("שיחות אחרונות:\n")
+            f.write("Recent conversations:\n")
             f.write("-"*70 + "\n")
             for conv in self.conversations[-10:]:
                 f.write(f"\n[{conv['timestamp']}]\n")
                 f.write(f"Prompt: {conv['prompt'][:100]}...\n")
                 f.write(f"Response: {conv['response'][:100]}...\n")
         
-        print(f"✅ סיכום יוצא ל: {output_file}")
+        print(f"✅ Summary exported to: {output_file}")
 
 
 def main():
     """
-    נקודת כניסה ראשית
+    Main entry point
     """
     analyzer = CleanLogsAnalyzer()
     analyzer.load_logs()
@@ -251,13 +250,13 @@ def main():
     if analyzer.conversations:
         analyzer.analyze()
         
-        # שאלה אם לייצא
+        # Ask if they want to export
         try:
-            export = input("\nלייצא סיכום לקובץ? (y/n): ").lower()
+            export = input("\nExport summary to file? (y/n): ").lower()
             if export == 'y':
                 analyzer.export_summary()
         except KeyboardInterrupt:
-            print("\n\n👋 ביי!")
+            print("\n\n👋 Bye!")
 
 
 if __name__ == "__main__":

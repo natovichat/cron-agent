@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Cron Agent - אוטומציה חכמה לניהול משימות
-=========================================
+Cron Agent - Smart Task Automation
+===================================
 
-מערכת שמתזמנת פעולות חוזרות, קוראת משימות מ-Todoist,
-שולחת אותן ל-Cursor AI לביצוע, ומעדכנת את התוצאות בחזרה.
+System that schedules recurring tasks, reads tasks from Todoist,
+sends them to Cursor AI for execution, and updates results back.
 
 Author: Your Name
 Date: 2025-02-15
@@ -21,31 +21,31 @@ from pathlib import Path
 
 class CleanLogger:
     """
-    לוג נקי שמראה רק פרומפטים ותשובות, ללא דיבאג
+    Clean logger that shows only prompts and responses, without debug info
     """
     
     def __init__(self, log_dir: str = "clean_logs"):
         """
-        אתחול ה-logger
+        Initialize the logger
         
         Args:
-            log_dir: תיקייה לשמירת הלוגים
+            log_dir: Directory to save logs
         """
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(exist_ok=True)
         
-        # יצירת שם קובץ עם תאריך
+        # Create filename with date
         today = datetime.now().strftime("%Y-%m-%d")
         self.log_file = self.log_dir / f"conversation_{today}.log"
     
     def log_conversation(self, prompt: str, response: str, task_id: str = None):
         """
-        רישום שיחה בלוג הנקי
+        Log conversation to clean log
         
         Args:
-            prompt: הפרומפט ששלחנו
-            response: התשובה שקיבלנו
-            task_id: מזהה המשימה (אופציונלי)
+            prompt: The prompt we sent
+            response: The response we received
+            task_id: Task ID (optional)
         """
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
@@ -63,31 +63,31 @@ class CleanLogger:
 
 """
         
-        # כתיבה לקובץ
+        # Write to file
         with open(self.log_file, 'a', encoding='utf-8') as f:
             f.write(log_entry)
     
     def get_log_file_path(self) -> str:
         """
-        קבלת נתיב הקובץ
+        Get file path
         
         Returns:
-            נתיב הקובץ
+            File path
         """
         return str(self.log_file)
 
 
 class TodoistAPI:
     """
-    ממשק לעבודה עם Todoist API
+    Interface for working with Todoist API
     """
     
     def __init__(self, token: str):
         """
-        אתחול ה-API
+        Initialize the API
         
         Args:
-            token: API Token מ-Todoist
+            token: API Token from Todoist
         """
         self.token = token
         self.base_url = "https://api.todoist.com/rest/v2"
@@ -98,10 +98,10 @@ class TodoistAPI:
     
     def get_tasks(self) -> List[Dict]:
         """
-        קבלת כל המשימות הפעילות
+        Get all active tasks
         
         Returns:
-            רשימת משימות
+            List of tasks
         """
         try:
             response = requests.get(
@@ -111,25 +111,25 @@ class TodoistAPI:
             response.raise_for_status()
             tasks = response.json()
             
-            # סינון משימות שלא הושלמו
+            # Filter incomplete tasks
             active_tasks = [t for t in tasks if not t.get('is_completed', False)]
             
-            print(f"📋 נמצאו {len(active_tasks)} משימות פעילות")
+            print(f"📋 Found {len(active_tasks)} active tasks")
             return active_tasks
             
         except Exception as e:
-            print(f"❌ שגיאה בקריאת משימות: {e}")
+            print(f"❌ Error fetching tasks: {e}")
             return []
     
     def complete_task(self, task_id: str) -> bool:
         """
-        סימון משימה כהושלמה
+        Mark task as completed
         
         Args:
-            task_id: מזהה המשימה
+            task_id: Task ID
             
         Returns:
-            האם הפעולה הצליחה
+            Whether the operation succeeded
         """
         try:
             response = requests.post(
@@ -139,19 +139,19 @@ class TodoistAPI:
             response.raise_for_status()
             return True
         except Exception as e:
-            print(f"❌ שגיאה בסגירת משימה {task_id}: {e}")
+            print(f"❌ Error completing task {task_id}: {e}")
             return False
     
     def add_comment(self, task_id: str, comment: str) -> bool:
         """
-        הוספת הערה למשימה
+        Add comment to task
         
         Args:
-            task_id: מזהה המשימה
-            comment: תוכן ההערה
+            task_id: Task ID
+            comment: Comment content
             
         Returns:
-            האם הפעולה הצליחה
+            Whether the operation succeeded
         """
         try:
             response = requests.post(
@@ -165,14 +165,14 @@ class TodoistAPI:
             response.raise_for_status()
             return True
         except Exception as e:
-            print(f"❌ שגיאה בהוספת הערה: {e}")
+            print(f"❌ Error adding comment: {e}")
             return False
 
 
 class CursorAgent:
     """
-    סימולציה של Cursor AI Agent
-    (בפועל זה יהיה אינטגרציה אמיתית עם Cursor)
+    Simulation of Cursor AI Agent
+    (In production this will be real Cursor integration)
     """
     
     def __init__(self, clean_logger: CleanLogger = None):
@@ -181,23 +181,23 @@ class CursorAgent:
     
     def execute(self, task_content: str, task_id: str = None) -> Dict[str, any]:
         """
-        ביצוע משימה באמצעות AI
+        Execute task using AI
         
         Args:
-            task_content: תיאור המשימה
-            task_id: מזהה המשימה (לצורך לוגינג)
+            task_content: Task description
+            task_id: Task ID (for logging)
             
         Returns:
-            תוצאת הביצוע
+            Execution result
         """
-        print(f"🤖 Cursor AI מעבד: {task_content}")
+        print(f"🤖 Cursor AI processing: {task_content}")
         
-        # כאן יהיה הקוד האמיתי של Cursor AI
-        # לצורך דוגמה, נחזיר סימולציה
+        # Here will be the real Cursor AI code
+        # For now, we return a simulation
         
         timestamp = datetime.now().strftime("%H:%M:%S")
         
-        # זיהוי סוג המשימה (דוגמה פשוטה)
+        # Identify task type (simple example)
         action_taken = self._analyze_and_execute(task_content)
         
         result = {
@@ -208,7 +208,7 @@ class CursorAgent:
             "duration": "0.5s"
         }
         
-        # כתיבה ללוג הנקי (רק פרומפט ותשובה)
+        # Write to clean log (only prompt and response)
         if self.clean_logger:
             self.clean_logger.log_conversation(
                 prompt=task_content,
@@ -221,45 +221,45 @@ class CursorAgent:
     
     def _analyze_and_execute(self, content: str) -> str:
         """
-        ניתוח וביצוע המשימה
+        Analyze and execute the task
         
         Args:
-            content: תוכן המשימה
+            content: Task content
             
         Returns:
-            תיאור הפעולה שבוצעה
+            Description of action taken
         """
         content_lower = content.lower()
         
-        # דוגמאות לזיהוי סוגי משימות
-        if "מייל" in content_lower or "email" in content_lower:
-            return "✉️ נשלח מייל אוטומטי ללקוח"
+        # Examples of task type detection
+        if "email" in content_lower:
+            return "✉️ Automated email sent to client"
         
-        elif "דוח" in content_lower or "report" in content_lower:
-            return "📊 נוצר דוח מפורט ונשלח למייל"
+        elif "report" in content_lower:
+            return "📊 Detailed report created and emailed"
         
-        elif "גיבוי" in content_lower or "backup" in content_lower:
-            return "💾 בוצע גיבוי של כל הקבצים החשובים"
+        elif "backup" in content_lower:
+            return "💾 Backup of all important files completed"
         
-        elif "עדכון" in content_lower or "update" in content_lower:
-            return "🔄 מסד הנתונים עודכן בהצלחה"
+        elif "update" in content_lower:
+            return "🔄 Database updated successfully"
         
         else:
-            return f"✅ המשימה '{content}' בוצעה בהצלחה"
+            return f"✅ Task '{content}' completed successfully"
 
 
 class CronAgent:
     """
-    המנוע הראשי של המערכת - מתזמן ומפעיל משימות
+    Main engine of the system - schedules and executes tasks
     """
     
     def __init__(self, todoist_token: str, clean_log_dir: str = "clean_logs"):
         """
-        אתחול ה-Cron Agent
+        Initialize the Cron Agent
         
         Args:
-            todoist_token: API Token של Todoist
-            clean_log_dir: תיקייה ללוג הנקי
+            todoist_token: Todoist API Token
+            clean_log_dir: Directory for clean log
         """
         self.todoist = TodoistAPI(todoist_token)
         self.clean_logger = CleanLogger(clean_log_dir)
@@ -271,125 +271,125 @@ class CronAgent:
             "start_time": datetime.now()
         }
         
-        # הדפסת מיקום הלוג הנקי
-        print(f"📝 לוג נקי נשמר ב: {self.clean_logger.get_log_file_path()}")
+        # Print clean log location
+        print(f"📝 Clean log saved to: {self.clean_logger.get_log_file_path()}")
     
     def process_tasks(self):
         """
-        עיבוד כל המשימות הפעילות
+        Process all active tasks
         """
         print("\n" + "="*50)
         print(f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("="*50)
         
-        # קבלת משימות
+        # Get tasks
         tasks = self.todoist.get_tasks()
         
         if not tasks:
-            print("💤 אין משימות חדשות לעיבוד")
+            print("💤 No new tasks to process")
             return
         
-        # עיבוד כל משימה
+        # Process each task
         for task in tasks:
             self._process_single_task(task)
         
-        # הצגת סטטיסטיקות
+        # Show statistics
         self._print_stats()
     
     def _process_single_task(self, task: Dict):
         """
-        עיבוד משימה בודדת
+        Process a single task
         
         Args:
-            task: אובייקט המשימה
+            task: Task object
         """
         task_id = task['id']
         task_content = task['content']
         
-        print(f"\n📝 מעבד משימה: {task_content}")
+        print(f"\n📝 Processing task: {task_content}")
         
         try:
-            # ביצוע המשימה ב-Cursor
+            # Execute task in Cursor
             result = self.cursor.execute(task_content, task_id=task_id)
             
-            # עדכון ב-Todoist
+            # Update in Todoist
             comment = f"""
-🎯 תוצאת ביצוע:
-- סטטוס: {"✅ הצליח" if result['success'] else "❌ נכשל"}
-- פעולה: {result['action_taken']}
-- זמן: {result['timestamp']}
-- משך: {result['duration']}
+🎯 Execution Result:
+- Status: {"✅ Success" if result['success'] else "❌ Failed"}
+- Action: {result['action_taken']}
+- Time: {result['timestamp']}
+- Duration: {result['duration']}
 """
             
             self.todoist.add_comment(task_id, comment)
             self.todoist.complete_task(task_id)
             
-            # עדכון סטטיסטיקות
+            # Update statistics
             self.stats['total_processed'] += 1
             if result['success']:
                 self.stats['successful'] += 1
             else:
                 self.stats['failed'] += 1
             
-            print(f"✅ המשימה הושלמה בהצלחה")
+            print(f"✅ Task completed successfully")
             
         except Exception as e:
-            print(f"❌ שגיאה בעיבוד משימה: {e}")
+            print(f"❌ Error processing task: {e}")
             self.stats['failed'] += 1
     
     def _print_stats(self):
         """
-        הצגת סטטיסטיקות
+        Display statistics
         """
         uptime = datetime.now() - self.stats['start_time']
         
         print("\n" + "-"*50)
-        print("📊 סטטיסטיקות:")
-        print(f"   🎯 סה\"כ משימות: {self.stats['total_processed']}")
-        print(f"   ✅ הצליחו: {self.stats['successful']}")
-        print(f"   ❌ נכשלו: {self.stats['failed']}")
-        print(f"   ⏱️  זמן פעילות: {str(uptime).split('.')[0]}")
+        print("📊 Statistics:")
+        print(f"   🎯 Total tasks: {self.stats['total_processed']}")
+        print(f"   ✅ Successful: {self.stats['successful']}")
+        print(f"   ❌ Failed: {self.stats['failed']}")
+        print(f"   ⏱️  Uptime: {str(uptime).split('.')[0]}")
         print("-"*50)
     
     def start(self, interval_seconds: int = 5):
         """
-        הפעלת ה-Cron Agent
+        Start the Cron Agent
         
         Args:
-            interval_seconds: מרווח זמן בין הרצות (בשניות)
+            interval_seconds: Interval between runs (in seconds)
         """
-        print("🚀 Cron Agent מתחיל לפעול!")
-        print(f"⏰ ירוץ כל {interval_seconds} שניות")
-        print(f"📝 לוג נקי (פרומפטים ותשובות בלבד): {self.clean_logger.get_log_file_path()}")
-        print("🛑 לחץ Ctrl+C לעצירה")
+        print("🚀 Cron Agent starting!")
+        print(f"⏰ Will run every {interval_seconds} seconds")
+        print(f"📝 Clean log (prompts and responses only): {self.clean_logger.get_log_file_path()}")
+        print("🛑 Press Ctrl+C to stop")
         print("="*50)
         
-        # הרצה ראשונית מיידית
+        # Initial run immediately
         self.process_tasks()
         
-        # תזמון ההרצות הבאות
+        # Schedule subsequent runs
         schedule.every(interval_seconds).seconds.do(self.process_tasks)
         
-        # לולאה אינסופית
+        # Infinite loop
         try:
             while True:
                 schedule.run_pending()
                 time.sleep(1)
         except KeyboardInterrupt:
-            print("\n\n🛑 Cron Agent נעצר")
+            print("\n\n🛑 Cron Agent stopped")
             self._print_stats()
-            print("\n👋 להתראות!")
+            print("\n👋 Goodbye!")
 
 
 def main():
     """
-    נקודת הכניסה הראשית
+    Main entry point
     """
     import argparse
     
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description="Cron Agent - אוטומציה חכמה לניהול משימות"
+        description="Cron Agent - Smart Task Automation"
     )
     parser.add_argument(
         "--install",
@@ -484,30 +484,30 @@ def main():
         return
     
     # Regular execution (no scheduler management)
-    # Change to project root directory (where .env and config.json are)
+    # Change to project root directory (where .env is)
     project_root = Path(__file__).parent.parent
     os.chdir(project_root)
     
-    # קריאת Token מ-environment variable
+    # Load Token from environment variable
     from dotenv import load_dotenv
     load_dotenv(project_root / ".env")  # Load from .env file in root
     
     todoist_token = os.getenv('TODOIST_TOKEN')
     
     if not todoist_token:
-        print("❌ שגיאה: TODOIST_TOKEN לא הוגדר!")
-        print("\nהוראות:")
-        print("1. קבל Token מ: https://todoist.com/app/settings/integrations/developer")
-        print("2. ערוך את קובץ .env והוסף:")
+        print("❌ Error: TODOIST_TOKEN not configured!")
+        print("\nInstructions:")
+        print("1. Get Token from: https://todoist.com/app/settings/integrations/developer")
+        print("2. Edit .env file and add:")
         print("   TODOIST_TOKEN=your-token-here")
-        print("3. הרץ את הסקריפט שוב")
+        print("3. Run the script again")
         return
     
     # Use default configuration
     clean_log_dir = 'clean_logs'
     interval_seconds = 5  # For manual runs, keep 5 seconds for demo
     
-    # יצירה והפעלה של ה-agent
+    # Create and start the agent
     agent = CronAgent(todoist_token, clean_log_dir=clean_log_dir)
     agent.start(interval_seconds=interval_seconds)
 
