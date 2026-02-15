@@ -64,6 +64,7 @@ class SetupManager:
         """Run the complete setup process."""
         self.print_header()
         self.check_python()
+        self.check_cursor_cli()
         self.create_venv()
         self.install_dependencies()
         self.setup_env_file()
@@ -95,6 +96,123 @@ class SetupManager:
         
         print(f"{Colors.GREEN}✅ Python {version_str} installed{Colors.ENDC}")
         print()
+    
+    def check_cursor_cli(self):
+        """Check and setup Cursor CLI authentication."""
+        print(f"{Colors.BLUE}🤖 Checking Cursor CLI...{Colors.ENDC}")
+        
+        # Check if cursor CLI is installed
+        try:
+            result = subprocess.run(
+                ["which", "cursor"],
+                capture_output=True,
+                text=True,
+                check=False
+            )
+            
+            if result.returncode != 0:
+                print(f"{Colors.WARNING}⚠️  Cursor CLI not found{Colors.ENDC}")
+                print(f"   Agent will use fallback simulation mode")
+                print(f"   To enable AI mode, install Cursor from: https://cursor.sh")
+                print()
+                return
+            
+            cursor_path = result.stdout.strip()
+            print(f"{Colors.GREEN}✅ Found Cursor CLI: {cursor_path}{Colors.ENDC}")
+            
+        except Exception as e:
+            print(f"{Colors.WARNING}⚠️  Could not check Cursor CLI: {e}{Colors.ENDC}")
+            print(f"   Agent will use fallback simulation mode")
+            print()
+            return
+        
+        # Check authentication status
+        print(f"\n{Colors.CYAN}🔐 Checking Cursor authentication...{Colors.ENDC}")
+        
+        try:
+            result = subprocess.run(
+                ["cursor", "agent", "status"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                check=False
+            )
+            
+            if result.returncode == 0 and "Logged in" in result.stdout:
+                # Already logged in
+                email = ""
+                for line in result.stdout.split('\n'):
+                    if "Logged in as" in line:
+                        email = line.split("as")[-1].strip()
+                        break
+                
+                print(f"{Colors.GREEN}✅ Already logged in{Colors.ENDC}")
+                if email:
+                    print(f"   Account: {Colors.BOLD}{email}{Colors.ENDC}")
+                print()
+                return
+            else:
+                # Not logged in - initiate login
+                print(f"{Colors.WARNING}⚠️  Not logged in to Cursor{Colors.ENDC}")
+                print()
+                
+                # Ask user if they want to login now
+                print(f"{Colors.CYAN}📝 Cursor Login Required{Colors.ENDC}")
+                print(f"\nTo use AI-powered task execution, you need to login to Cursor.")
+                print(f"This will open a browser window for authentication.")
+                print()
+                
+                response = input(f"{Colors.BOLD}Login to Cursor now? (Y/n): {Colors.ENDC}").strip().lower()
+                
+                if response in ['', 'y', 'yes']:
+                    print()
+                    print(f"{Colors.BLUE}🔓 Starting Cursor login...{Colors.ENDC}")
+                    print(f"   A browser window will open")
+                    print(f"   Please complete the authentication")
+                    print()
+                    
+                    # Run login command
+                    try:
+                        result = subprocess.run(
+                            ["cursor", "agent", "login"],
+                            timeout=120,  # 2 minute timeout
+                            check=False
+                        )
+                        
+                        if result.returncode == 0:
+                            print()
+                            print(f"{Colors.GREEN}✅ Successfully logged in to Cursor!{Colors.ENDC}")
+                            print()
+                        else:
+                            print()
+                            print(f"{Colors.WARNING}⚠️  Login was not completed{Colors.ENDC}")
+                            print(f"   You can login later by running: cursor agent login")
+                            print(f"   Agent will use fallback simulation mode until then")
+                            print()
+                            
+                    except subprocess.TimeoutExpired:
+                        print()
+                        print(f"{Colors.WARNING}⚠️  Login timeout{Colors.ENDC}")
+                        print(f"   You can login later by running: cursor agent login")
+                        print()
+                    except Exception as e:
+                        print()
+                        print(f"{Colors.WARNING}⚠️  Error during login: {e}{Colors.ENDC}")
+                        print(f"   You can login later by running: cursor agent login")
+                        print()
+                else:
+                    print()
+                    print(f"{Colors.WARNING}⚠️  Skipping Cursor login{Colors.ENDC}")
+                    print(f"   Agent will use fallback simulation mode")
+                    print(f"   To login later, run: cursor agent login")
+                    print()
+                    
+        except subprocess.TimeoutExpired:
+            print(f"{Colors.WARNING}⚠️  Timeout checking Cursor status{Colors.ENDC}")
+            print()
+        except Exception as e:
+            print(f"{Colors.WARNING}⚠️  Could not check Cursor status: {e}{Colors.ENDC}")
+            print()
     
     def create_venv(self):
         """Create virtual environment."""
@@ -198,11 +316,19 @@ class SetupManager:
             print(f"{Colors.FAIL}❌ Token cannot be empty!{Colors.ENDC}")
             token = input("Enter your Todoist API token: ").strip()
         
-        # Create .env file with token
+        # Create .env file with token and default interval
         env_content = f"""# Cron Agent Configuration
 # Auto-generated by setup
 
 TODOIST_TOKEN={token}
+
+# Refresh interval for task processing (in seconds)
+# Examples: 300 = 5 minutes, 600 = 10 minutes, 60 = 1 minute
+REFRESH_INTERVAL_SECONDS=300
+
+# Use Cursor CLI for task execution (true/false)
+# Set to true to use real Cursor AI, false for fallback simulation
+USE_CURSOR_CLI=true
 """
         env_file.write_text(env_content)
         print()

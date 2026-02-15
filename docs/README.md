@@ -16,11 +16,14 @@
 ./cronagent setup
 ```
 This will:
-- Install everything you need (~30 seconds)
+- Check and install dependencies (~30 seconds)
+- **Prompt you to login to Cursor** (for AI-powered execution)
 - **Prompt you for your Todoist API token** (no manual file editing!)
 - **Validate your configuration automatically**
 
 Get your token from: https://todoist.com/app/settings/integrations/developer
+
+> **Cursor Login**: During setup, you'll be asked to login to Cursor CLI. This enables real AI task execution. If you skip this, the agent will use fallback simulation mode.
 
 ### 2. Install Scheduler
 ```bash

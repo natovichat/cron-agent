@@ -14,6 +14,7 @@ import os
 import time
 import schedule
 import requests
+import subprocess
 from datetime import datetime
 from typing import List, Dict, Optional
 from pathlib import Path
@@ -242,17 +243,50 @@ class TodoistAPI:
 
 class CursorAgent:
     """
-    Simulation of Cursor AI Agent
-    (In production this will be real Cursor integration)
+    Cursor AI Agent using Cursor CLI
     """
     
-    def __init__(self, clean_logger: CleanLogger = None):
+    def __init__(self, clean_logger: CleanLogger = None, use_cli: bool = True):
+        """
+        Initialize Cursor Agent
+        
+        Args:
+            clean_logger: Logger for conversations
+            use_cli: Whether to use Cursor CLI (True) or fallback simulation (False)
+        """
         self.execution_log = []
         self.clean_logger = clean_logger
+        self.use_cli = use_cli
+        self.cursor_cli_path = self._find_cursor_cli()
+    
+    def _find_cursor_cli(self) -> Optional[str]:
+        """
+        Find Cursor CLI executable
+        
+        Returns:
+            Path to cursor CLI or None if not found
+        """
+        try:
+            result = subprocess.run(
+                ["which", "cursor"],
+                capture_output=True,
+                text=True,
+                check=False
+            )
+            if result.returncode == 0:
+                path = result.stdout.strip()
+                print(f"✅ Found Cursor CLI: {path}")
+                return path
+            else:
+                print("⚠️  Cursor CLI not found, will use fallback mode")
+                return None
+        except Exception as e:
+            print(f"⚠️  Error finding Cursor CLI: {e}")
+            return None
     
     def execute(self, task_content: str, task_id: str = None) -> Dict[str, any]:
         """
-        Execute task using AI
+        Execute task using Cursor AI
         
         Args:
             task_content: Task description
@@ -263,20 +297,24 @@ class CursorAgent:
         """
         print(f"🤖 Cursor AI processing: {task_content}")
         
-        # Here will be the real Cursor AI code
-        # For now, we return a simulation
-        
+        start_time = time.time()
         timestamp = datetime.now().strftime("%H:%M:%S")
         
-        # Identify task type (simple example)
-        action_taken = self._analyze_and_execute(task_content)
+        # Try to use Cursor CLI if available
+        if self.use_cli and self.cursor_cli_path:
+            action_taken = self._execute_with_cli(task_content)
+        else:
+            # Fallback to simple analysis
+            action_taken = self._analyze_and_execute(task_content)
+        
+        duration = time.time() - start_time
         
         result = {
             "success": True,
             "task": task_content,
             "timestamp": timestamp,
             "action_taken": action_taken,
-            "duration": "0.5s"
+            "duration": f"{duration:.2f}s"
         }
         
         # Write to clean log (only prompt and response)
@@ -290,6 +328,67 @@ class CursorAgent:
         self.execution_log.append(result)
         return result
     
+    def _execute_with_cli(self, task_content: str) -> str:
+        """
+        Execute task using Cursor CLI
+        
+        Args:
+            task_content: Task to execute
+            
+        Returns:
+            Response from Cursor AI
+        """
+        try:
+            print("   Using Cursor CLI...")
+            
+            # Get current working directory as workspace
+            workspace_path = os.getcwd()
+            
+            # Run cursor agent with --print flag for non-interactive mode
+            cmd = [
+                self.cursor_cli_path,
+                "agent",
+                "--print",
+                "--trust",  # Trust workspace without prompting
+                "--workspace", workspace_path,  # Specify workspace
+                "--output-format", "text",
+                "--force",  # Force allow commands
+                task_content
+            ]
+            
+            print(f"   Workspace: {workspace_path}")
+            print(f"   Timeout: 120 seconds")
+            
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=120,  # 120 second timeout (2 minutes)
+                check=False,
+                cwd=workspace_path  # Run in workspace directory
+            )
+            
+            if result.returncode == 0:
+                response = result.stdout.strip()
+                if response:
+                    print(f"   ✅ Got response from Cursor AI ({len(response)} chars)")
+                    return response
+                else:
+                    print("   ⚠️  Empty response from Cursor CLI")
+                    return self._analyze_and_execute(task_content)
+            else:
+                error_msg = result.stderr.strip() if result.stderr else "Unknown error"
+                print(f"   ⚠️  Cursor CLI error (code {result.returncode}): {error_msg[:200]}")
+                # Fallback to simple analysis
+                return self._analyze_and_execute(task_content)
+                
+        except subprocess.TimeoutExpired:
+            print("   ⚠️  Cursor CLI timeout (>120s), using fallback")
+            return self._analyze_and_execute(task_content)
+        except Exception as e:
+            print(f"   ⚠️  Error running Cursor CLI: {e}")
+            return self._analyze_and_execute(task_content)
+    
     def _analyze_and_execute(self, content: str) -> str:
         """
         Analyze and execute the task
@@ -300,9 +399,18 @@ class CursorAgent:
         Returns:
             Description of action taken
         """
+        import re
+        
         content_lower = content.lower()
         
-        # Examples of task type detection
+        # Check for calculation tasks (Hebrew and English)
+        calc_keywords = ["חשב", "כפול", "חלק", "פלוס", "מינוס", "calculate", "multiply", "divide", "plus", "minus"]
+        if any(keyword in content_lower for keyword in calc_keywords):
+            result = self._perform_calculation(content)
+            if result:
+                return result
+        
+        # Examples of other task type detection
         if "email" in content_lower:
             return "✉️ Automated email sent to client"
         
@@ -317,6 +425,53 @@ class CursorAgent:
         
         else:
             return f"✅ Task '{content}' completed successfully"
+    
+    def _perform_calculation(self, content: str) -> str:
+        """
+        Perform mathematical calculations from task content.
+        
+        Args:
+            content: Task content with mathematical expression
+            
+        Returns:
+            Calculation result or None if cannot parse
+        """
+        import re
+        
+        # Extract numbers from the content
+        numbers = re.findall(r'\d+(?:\.\d+)?', content)
+        
+        if len(numbers) < 2:
+            return None
+        
+        # Convert to floats
+        nums = [float(n) for n in numbers]
+        
+        content_lower = content.lower()
+        
+        # Detect operation (Hebrew and English)
+        if any(word in content_lower for word in ["כפול", "multiply", "*", "×"]):
+            result = nums[0] * nums[1]
+            return f"🧮 {nums[0]:g} × {nums[1]:g} = {result:g}"
+        
+        elif any(word in content_lower for word in ["חלק", "divide", "/", "÷"]):
+            if nums[1] == 0:
+                return "❌ Cannot divide by zero"
+            result = nums[0] / nums[1]
+            return f"🧮 {nums[0]:g} ÷ {nums[1]:g} = {result:g}"
+        
+        elif any(word in content_lower for word in ["פלוס", "plus", "+", "ועוד", "חיבור"]):
+            result = nums[0] + nums[1]
+            return f"🧮 {nums[0]:g} + {nums[1]:g} = {result:g}"
+        
+        elif any(word in content_lower for word in ["מינוס", "minus", "-", "פחות", "חיסור"]):
+            result = nums[0] - nums[1]
+            return f"🧮 {nums[0]:g} - {nums[1]:g} = {result:g}"
+        
+        else:
+            # Default to addition if no operation detected
+            result = sum(nums)
+            return f"🧮 Sum of {', '.join(str(n) for n in nums)} = {result:g}"
 
 
 class CronAgent:
@@ -324,17 +479,18 @@ class CronAgent:
     Main engine of the system - schedules and executes tasks
     """
     
-    def __init__(self, todoist_token: str, clean_log_dir: str = "clean_logs"):
+    def __init__(self, todoist_token: str, clean_log_dir: str = "clean_logs", use_cursor_cli: bool = True):
         """
         Initialize the Cron Agent
         
         Args:
             todoist_token: Todoist API Token
             clean_log_dir: Directory for clean log
+            use_cursor_cli: Whether to use Cursor CLI (True) or fallback simulation (False)
         """
         self.todoist = TodoistAPI(todoist_token)
         self.clean_logger = CleanLogger(clean_log_dir)
-        self.cursor = CursorAgent(clean_logger=self.clean_logger)
+        self.cursor = CursorAgent(clean_logger=self.clean_logger, use_cli=use_cursor_cli)
         self.stats = {
             "total_processed": 0,
             "successful": 0,
@@ -480,8 +636,8 @@ def main():
     parser.add_argument(
         "--interval",
         type=int,
-        default=5,
-        help="Interval in minutes (default: 5)"
+        default=None,
+        help="Interval in seconds (default: from REFRESH_INTERVAL_SECONDS in .env)"
     )
     
     args = parser.parse_args()
@@ -489,20 +645,28 @@ def main():
     # Handle scheduler management commands
     if args.install or args.uninstall or args.status:
         from scheduler.factory import create_scheduler
+        from dotenv import load_dotenv
+        
+        # Load .env file to get default interval
+        project_root = Path(__file__).parent.parent
+        load_dotenv(project_root / ".env")
+        
+        # Get interval from args or env variable (in seconds)
+        interval_seconds = args.interval
+        if interval_seconds is None:
+            interval_seconds = int(os.getenv('REFRESH_INTERVAL_SECONDS', 300))
+        
+        # Convert seconds to minutes for scheduler (rounds up)
+        interval_minutes = max(1, (interval_seconds + 59) // 60)
         
         script_path = Path(__file__).resolve()
         
         try:
-            scheduler = create_scheduler(script_path, interval_minutes=args.interval)
+            scheduler = create_scheduler(script_path, interval_minutes=interval_minutes)
             
             if args.install:
                 # Validate Todoist token before installing
                 print("🔍 Validating configuration...")
-                
-                # Load .env file
-                from dotenv import load_dotenv
-                project_root = Path(__file__).parent.parent
-                load_dotenv(project_root / ".env")
                 
                 todoist_token = os.getenv('TODOIST_TOKEN')
                 
@@ -525,7 +689,7 @@ def main():
                 
                 print("📦 Installing scheduler...")
                 print(f"   Type: {scheduler.__class__.__name__}")
-                print(f"   Interval: {args.interval} minutes")
+                print(f"   Interval: {interval_seconds} seconds ({interval_minutes} minutes)")
                 print()
                 
                 if scheduler.install():
@@ -621,12 +785,25 @@ def main():
     print("✅ Todoist API connection validated successfully!")
     print()
     
-    # Use default configuration
+    # Use configuration from environment
     clean_log_dir = 'clean_logs'
-    interval_seconds = 5  # For manual runs, keep 5 seconds for demo
+    
+    # Get interval from environment variable (in seconds)
+    interval_seconds = int(os.getenv('REFRESH_INTERVAL_SECONDS', 300))
+    
+    # Check if Cursor CLI should be used
+    use_cursor_cli = os.getenv('USE_CURSOR_CLI', 'true').lower() in ('true', '1', 'yes')
+    
+    if use_cursor_cli:
+        print("🤖 Cursor CLI mode: ENABLED")
+        print("   Tasks will be executed by real Cursor AI")
+    else:
+        print("⚠️  Cursor CLI mode: DISABLED")
+        print("   Tasks will use fallback simulation")
+    print()
     
     # Create and start the agent
-    agent = CronAgent(todoist_token, clean_log_dir=clean_log_dir)
+    agent = CronAgent(todoist_token, clean_log_dir=clean_log_dir, use_cursor_cli=use_cursor_cli)
     agent.start(interval_seconds=interval_seconds)
 
 
