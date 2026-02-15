@@ -1,0 +1,14 @@
+# Cron Agent - Dependencies
+# התקנה: pip install -r requirements.txt
+
+# Core dependencies
+schedule==1.2.0          # Job scheduling library
+requests==2.31.0         # HTTP requests for API calls
+
+# Optional dependencies for extended functionality
+python-dotenv==1.0.0     # Environment variables management
+
+# Development dependencies (optional)
+pytest==7.4.0            # Testing framework
+black==23.7.0            # Code formatting
+flake8==6.1.0            # Code linting
