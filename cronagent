@@ -11,12 +11,14 @@ Commands:
 """
 
 import sys
+import os
 from pathlib import Path
 
 # Get paths
 root_dir = Path(__file__).parent
 src_dir = root_dir / "src"
 venv_python = src_dir / "venv" / "bin" / "python3"
+env_file = root_dir / ".env"
 
 # Check if running setup command
 if len(sys.argv) > 1 and sys.argv[1] == "setup":
@@ -34,6 +36,77 @@ if not venv_python.exists():
     print("  ./cronagent setup")
     print()
     sys.exit(1)
+
+# Validate .env configuration
+def validate_env():
+    """Validate that .env exists and has required configuration."""
+    
+    # Check if .env exists
+    if not env_file.exists():
+        print("❌ Configuration file not found!")
+        print()
+        print("The .env file is missing. Please run setup:")
+        print("  ./cronagent setup")
+        print()
+        return False
+    
+    # Load .env and check required fields
+    required_fields = {
+        'TODOIST_TOKEN': 'Todoist API token'
+    }
+    
+    missing_fields = []
+    empty_fields = []
+    
+    # Read .env file
+    env_vars = {}
+    with open(env_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, value = line.split('=', 1)
+                env_vars[key.strip()] = value.strip()
+    
+    # Check each required field
+    for field, description in required_fields.items():
+        if field not in env_vars:
+            missing_fields.append((field, description))
+        elif not env_vars[field] or env_vars[field] in ['your_token_here', 'your-token-here']:
+            empty_fields.append((field, description))
+    
+    # Report errors if any
+    if missing_fields or empty_fields:
+        print("❌ Configuration validation failed!")
+        print()
+        
+        if missing_fields:
+            print("Missing required fields in .env:")
+            for field, description in missing_fields:
+                print(f"  • {field} - {description}")
+            print()
+        
+        if empty_fields:
+            print("Empty or placeholder values in .env:")
+            for field, description in empty_fields:
+                print(f"  • {field} - {description}")
+            print()
+        
+        print("Please update your .env file:")
+        print("  1. Open .env in a text editor")
+        print("  2. Add your Todoist API token")
+        print("  3. Get token from: https://todoist.com/app/settings/integrations/developer")
+        print()
+        print("Or run setup again to reconfigure:")
+        print("  ./cronagent setup")
+        print()
+        return False
+    
+    return True
+
+# Validate configuration before running (except for status command)
+if len(sys.argv) == 1 or (len(sys.argv) > 1 and sys.argv[1] not in ['status']):
+    if not validate_env():
+        sys.exit(1)
 
 # Translate subcommands to flags for compatibility with cron_agent.py
 args = sys.argv[1:]

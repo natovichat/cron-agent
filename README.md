@@ -18,6 +18,7 @@
 This will:
 - Install everything you need (~30 seconds)
 - **Prompt you for your Todoist API token** (no manual file editing!)
+- **Validate your configuration automatically**
 
 Get your token from: https://todoist.com/app/settings/integrations/developer
 
@@ -27,6 +28,8 @@ Get your token from: https://todoist.com/app/settings/integrations/developer
 ```
 
 **That's it! 🎉** Your agent is now running automatically every 5 minutes.
+
+> **Note:** The agent validates your `.env` configuration before running. If your token is missing or invalid, you'll see a clear error message with instructions to fix it.
 
 ---
 
@@ -151,6 +154,24 @@ Or reinstall with new interval:
 ---
 
 ## 🛠️ Troubleshooting
+
+### Configuration Errors?
+
+The agent automatically validates your `.env` configuration. If you see an error like:
+```
+❌ Configuration validation failed!
+```
+
+**Common issues:**
+- Missing `.env` file → Run `./cronagent setup`
+- Empty or placeholder token → Add your real token to `.env`
+- Token has `your_token_here` → Replace with actual token
+
+**Quick fix:**
+```bash
+# Run setup again to reconfigure
+./cronagent setup
+```
 
 ### Scheduler Not Running?
 
