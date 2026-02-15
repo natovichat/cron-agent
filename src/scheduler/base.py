@@ -18,19 +18,21 @@ class BaseScheduler(ABC):
     
     Attributes:
         script_path: Path to the cron_agent.py script
-        interval_minutes: How often to run the agent (default: 5 minutes)
+        interval_seconds: How often to run the agent in seconds (default: 300 = 5 minutes)
+        interval_minutes: Interval in minutes (for schedulers that need it)
     """
     
-    def __init__(self, script_path: Path, interval_minutes: int = 5):
+    def __init__(self, script_path: Path, interval_seconds: int = 300):
         """
         Initialize scheduler.
         
         Args:
             script_path: Absolute path to cron_agent.py (in src/)
-            interval_minutes: Interval between runs in minutes
+            interval_seconds: Interval between runs in seconds
         """
         self.script_path = script_path.resolve()
-        self.interval_minutes = interval_minutes
+        self.interval_seconds = interval_seconds
+        self.interval_minutes = max(1, interval_seconds // 60)  # For minute-based schedulers
         # script_path is in src/, so project root is one level up
         self.src_dir = self.script_path.parent
         self.project_root = self.src_dir.parent

@@ -669,13 +669,13 @@ def main():
         if interval_seconds is None:
             interval_seconds = int(os.getenv('REFRESH_INTERVAL_SECONDS', 300))
         
-        # Convert seconds to minutes for scheduler (rounds up)
-        interval_minutes = max(1, (interval_seconds + 59) // 60)
+        # For display purposes
+        interval_minutes = interval_seconds // 60
         
         script_path = Path(__file__).resolve()
         
         try:
-            scheduler = create_scheduler(script_path, interval_minutes=interval_minutes)
+            scheduler = create_scheduler(script_path, interval_seconds=interval_seconds)
             
             if args.install:
                 # Validate Todoist token before installing

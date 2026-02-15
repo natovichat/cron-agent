@@ -10,7 +10,7 @@ from pathlib import Path
 from .base import BaseScheduler
 
 
-def create_scheduler(script_path: Path, interval_minutes: int = 5) -> BaseScheduler:
+def create_scheduler(script_path: Path, interval_seconds: int = 300) -> BaseScheduler:
     """
     Factory function to create OS-specific scheduler.
     
@@ -22,7 +22,7 @@ def create_scheduler(script_path: Path, interval_minutes: int = 5) -> BaseSchedu
     
     Args:
         script_path: Path to cron_agent.py
-        interval_minutes: Interval in minutes (default: 5)
+        interval_seconds: Interval in seconds (default: 300 = 5 minutes)
         
     Returns:
         OS-specific scheduler instance
@@ -31,7 +31,7 @@ def create_scheduler(script_path: Path, interval_minutes: int = 5) -> BaseSchedu
         OSError: If operating system is not supported
         
     Example:
-        >>> scheduler = create_scheduler(Path("cron_agent.py"))
+        >>> scheduler = create_scheduler(Path("cron_agent.py"), interval_seconds=300)
         >>> scheduler.install()
         >>> scheduler.start()
     """
@@ -39,20 +39,20 @@ def create_scheduler(script_path: Path, interval_minutes: int = 5) -> BaseSchedu
     
     if os_name == "Darwin":  # macOS
         from .launchd import LaunchdScheduler
-        return LaunchdScheduler(script_path, interval_minutes)
+        return LaunchdScheduler(script_path, interval_seconds)
     
     elif os_name == "Linux":
         # Prefer systemd if available
         if _has_systemd():
             from .systemd import SystemdScheduler
-            return SystemdScheduler(script_path, interval_minutes)
+            return SystemdScheduler(script_path, interval_seconds)
         else:
             from .cron import CronScheduler
-            return CronScheduler(script_path, interval_minutes)
+            return CronScheduler(script_path, interval_seconds)
     
     elif os_name == "Windows":
         from .windows_task import WindowsTaskScheduler
-        return WindowsTaskScheduler(script_path, interval_minutes)
+        return WindowsTaskScheduler(script_path, interval_seconds)
     
     else:
         raise OSError(f"Unsupported operating system: {os_name}")

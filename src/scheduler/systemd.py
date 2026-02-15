@@ -28,15 +28,15 @@ class SystemdScheduler(BaseScheduler):
         >>> scheduler.start()
     """
     
-    def __init__(self, script_path: Path, interval_minutes: int = 5):
+    def __init__(self, script_path: Path, interval_seconds: int = 300):
         """
         Initialize systemd timer scheduler.
         
         Args:
             script_path: Path to cron_agent.py
-            interval_minutes: Interval between runs
+            interval_seconds: Interval between runs in seconds
         """
-        super().__init__(script_path, interval_minutes)
+        super().__init__(script_path, interval_seconds)
         self.service_name = "cronagent"
         self.systemd_dir = Path.home() / ".config" / "systemd" / "user"
         self.service_path = self.systemd_dir / f"{self.service_name}.service"
@@ -80,7 +80,7 @@ Requires={self.service_name}.service
 
 [Timer]
 OnBootSec=1min
-OnUnitActiveSec={self.interval_minutes}min
+OnUnitActiveSec={self.interval_seconds}s
 Persistent=true
 
 [Install]
@@ -139,7 +139,14 @@ WantedBy=timers.target
             
             if result1.returncode == 0 and result2.returncode == 0:
                 print(f"✅ Systemd timer enabled and started")
-                print(f"   Runs every {self.interval_minutes} minutes")
+                if self.interval_seconds < 60:
+                    print(f"   Runs every {self.interval_seconds} seconds")
+                elif self.interval_seconds % 60 == 0:
+                    print(f"   Runs every {self.interval_seconds // 60} minutes")
+                else:
+                    mins = self.interval_seconds // 60
+                    secs = self.interval_seconds % 60
+                    print(f"   Runs every {mins}m {secs}s")
                 return True
             else:
                 print(f"❌ Failed to start timer")

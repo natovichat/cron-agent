@@ -73,7 +73,14 @@ class WindowsTaskScheduler(BaseScheduler):
             
             if result.returncode == 0:
                 print(f"✅ Windows Task created: {self.task_name}")
-                print(f"   Runs every {self.interval_minutes} minutes")
+                if self.interval_seconds < 60:
+                    print(f"   Runs every {self.interval_seconds} seconds")
+                elif self.interval_seconds % 60 == 0:
+                    print(f"   Runs every {self.interval_seconds // 60} minutes")
+                else:
+                    mins = self.interval_seconds // 60
+                    secs = self.interval_seconds % 60
+                    print(f"   Runs every {mins}m {secs}s")
                 return True
             else:
                 print(f"❌ Failed to create task")

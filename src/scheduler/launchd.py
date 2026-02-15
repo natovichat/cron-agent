@@ -28,15 +28,15 @@ class LaunchdScheduler(BaseScheduler):
         >>> print(scheduler.status())
     """
     
-    def __init__(self, script_path: Path, interval_minutes: int = 5):
+    def __init__(self, script_path: Path, interval_seconds: int = 300):
         """
         Initialize macOS LaunchAgent scheduler.
         
         Args:
             script_path: Path to cron_agent.py
-            interval_minutes: Interval between runs
+            interval_seconds: Interval between runs in seconds
         """
-        super().__init__(script_path, interval_minutes)
+        super().__init__(script_path, interval_seconds)
         self.plist_name = "com.cursor.cronagent"
         self.plist_path = Path.home() / "Library" / "LaunchAgents" / f"{self.plist_name}.plist"
     
@@ -74,7 +74,7 @@ class LaunchdScheduler(BaseScheduler):
     </array>
     
     <key>StartInterval</key>
-    <integer>{self.interval_minutes * 60}</integer>
+    <integer>{self.interval_seconds}</integer>
     
     <key>RunAtLoad</key>
     <true/>
@@ -141,7 +141,14 @@ class LaunchdScheduler(BaseScheduler):
             
             if result.returncode == 0:
                 print(f"✅ LaunchAgent loaded and started")
-                print(f"   Runs every {self.interval_minutes} minutes")
+                if self.interval_seconds < 60:
+                    print(f"   Runs every {self.interval_seconds} seconds")
+                elif self.interval_seconds % 60 == 0:
+                    print(f"   Runs every {self.interval_seconds // 60} minutes")
+                else:
+                    mins = self.interval_seconds // 60
+                    secs = self.interval_seconds % 60
+                    print(f"   Runs every {mins}m {secs}s")
                 return True
             else:
                 print(f"❌ Failed to load LaunchAgent: {result.stderr}")
