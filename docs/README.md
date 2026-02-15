@@ -1,92 +1,283 @@
-# Clean Logs - לוגים נקיים
+# 🤖 Cron Agent - Cross-Platform Task Automation
 
-תיקייה זו מכילה לוגים נקיים שמראים **רק** את השיחות עם Cursor AI:
-- הפרומפט ששלחנו
-- התשובה שקיבלנו
+**Intelligent task automation** that reads tasks from Todoist, executes them via Cursor AI, and updates results automatically.
 
-**ללא**: debugging, מחשבות פנימיות, או מידע טכני.
+✅ Works on **macOS, Linux, and Windows**  
+⏰ Smart scheduling with native OS schedulers  
+📝 Clean conversation logs  
+🔒 Secure local configuration
 
-## פורמט הלוג
+---
 
-כל קובץ לוג נקרא: `conversation_YYYY-MM-DD.log`
+## 🚀 Quick Start (2 Steps!)
 
-### דוגמת תוכן:
-
-```
-======================================================================
-[2025-02-15 14:30:00] Task ID: 12345
-
-📤 PROMPT:
-שלח מייל ללקוח חשוב עם עדכון על המוצר החדש
-
-📥 RESPONSE:
-✉️ נשלח מייל אוטומטי ללקוח
-
-======================================================================
-
-======================================================================
-[2025-02-15 14:30:05] Task ID: 12346
-
-📤 PROMPT:
-צור דוח שבועי של כל המכירות
-
-📥 RESPONSE:
-📊 נוצר דוח מפורט ונשלח למייל
-
-======================================================================
-```
-
-## שימוש
-
-הלוגים הנקיים מושלמים ל:
-- 📊 ניתוח שיחות עם ה-AI
-- 📈 מעקב אחר ביצועים
-- 🔍 סקירה מהירה של פעילות
-- 📝 תיעוד להצגה למנהלים/לקוחות
-- 🎓 למידה והשבחה של פרומפטים
-
-## הבדל מהלוג הרגיל
-
-| לוג רגיל | לוג נקי |
-|----------|---------|
-| כולל debugging | רק שיחות |
-| הודעות טכניות | פורמט נקי |
-| שגיאות מפורטות | תוצאות בלבד |
-| Stack traces | מסקנות |
-| זמני הרצה מדויקים | תאריך שעה פשוט |
-
-## גישה ללוגים
-
-הלוגים נוצרים אוטומטית כאשר Cron Agent רץ.
-
-כדי לראות את הלוג האחרון:
+### 1. Setup (Interactive)
 ```bash
-# Linux/Mac
-tail -f clean_logs/conversation_$(date +%Y-%m-%d).log
+./cronagent setup
+```
+This will:
+- Install everything you need (~30 seconds)
+- **Prompt you for your Todoist API token** (no manual file editing!)
+- **Validate your configuration automatically**
 
-# או פשוט
-cat clean_logs/conversation_*.log | tail -20
+Get your token from: https://todoist.com/app/settings/integrations/developer
+
+### 2. Install Scheduler
+```bash
+./cronagent install
 ```
 
-## ניקוי
+**That's it! 🎉** Your agent is now running automatically every 5 minutes.
 
-לוגים ישנים לא נמחקים אוטומטית. כדי לנקות:
+> **Note:** The agent validates your `.env` configuration before running. If your token is missing or invalid, you'll see a clear error message with instructions to fix it.
+
+---
+
+## 📋 What You Need to Know
+
+### User Files (What You'll Work With):
+
+```
+cron-agent/
+├── .env                   # 🔑 Your Todoist token (EDIT THIS)
+├── cronagent              # 🎮 Main command (setup, install, status)
+│
+├── logs/                  # 📊 Technical logs (debugging)
+├── clean_logs/            # 💬 Conversation logs (prompts & responses)
+│
+├── docs/                  # 📚 Documentation
+│   ├── setup-guide.html  # Interactive setup guide
+│   └── FILE_STRUCTURE.md # Project structure reference
+│
+└── src/                   # 🔧 Code (you don't need to touch this)
+```
+
+### The Important Files:
+
+#### `.env` (Your Token)
+```bash
+TODOIST_TOKEN=your_token_here
+```
+**Created automatically during setup!** No manual editing needed.
+
+#### `cronagent` (Main Command)
+```bash
+./cronagent setup      # First-time setup
+./cronagent install    # Install scheduler  
+./cronagent status     # Check if running
+./cronagent uninstall  # Remove scheduler
+```
+**All you need to manage the agent!**
+
+---
+
+## 🎮 Usage
+
+### Basic Commands:
 
 ```bash
-# מחיקת לוגים מלפני 30 יום
-find clean_logs/ -name "conversation_*.log" -mtime +30 -delete
+# First time setup
+./cronagent setup
 
-# שמירת רק 10 הלוגים האחרונים
-ls -t clean_logs/conversation_*.log | tail -n +11 | xargs rm -f
+# Install scheduler
+./cronagent install
+
+# Check if it's running
+./cronagent status
+
+# Stop scheduler
+./cronagent uninstall
+
+# Manual run (for testing)
+./cronagent
 ```
 
-## הגדרות
+### Viewing Logs:
 
-ניתן לשנות את מיקום התיקייה ב-`cron_agent.py`:
+```bash
+# View conversation logs (clean)
+cat clean_logs/conversation_*.log
 
-```python
-agent = CronAgent(
-    todoist_token=token,
-    clean_log_dir="my_custom_logs"  # תיקייה מותאמת אישית
-)
+# View technical logs
+tail -f logs/stdout.log
 ```
+
+---
+
+## 🔧 Configuration
+
+### Change Polling Interval
+
+Pass the interval when installing:
+```bash
+./cronagent install --interval 10
+```
+
+Or reinstall with new interval:
+```bash
+./cronagent uninstall
+./cronagent install --interval 10
+```
+
+---
+
+## 📚 Documentation
+
+- **Interactive Setup Guide**: Open `docs/setup-guide.html` in your browser
+  - Tabs for macOS, Linux, Windows
+  - Step-by-step instructions
+  - Comparison tables
+
+- **File Structure Guide**: `docs/FILE_STRUCTURE.md`
+  - Complete project organization
+  - What each file does
+  - Where everything is located
+
+- **Implementation Details**: `IMPLEMENTATION_SUMMARY.md`
+  - Technical architecture
+  - Design decisions
+  - Platform comparisons
+
+- **Version History**: `CHANGELOG.md`
+  - What changed in each version
+
+---
+
+## 🌍 Platform Support
+
+| Platform | Scheduler | Status |
+|----------|-----------|--------|
+| 🍎 **macOS** | LaunchAgents | ✅ Tested |
+| 🐧 **Linux** | systemd/cron | ✅ Ready |
+| 🪟 **Windows** | Task Scheduler | ✅ Ready |
+
+---
+
+## 🛠️ Troubleshooting
+
+### Configuration Errors?
+
+The agent automatically validates your `.env` configuration. If you see an error like:
+```
+❌ Configuration validation failed!
+```
+
+**Common issues:**
+- Missing `.env` file → Run `./cronagent setup`
+- Empty or placeholder token → Add your real token to `.env`
+- Token has `your_token_here` → Replace with actual token
+
+**Quick fix:**
+```bash
+# Run setup again to reconfigure
+./cronagent setup
+```
+
+### Scheduler Not Running?
+
+```bash
+# Check status
+./cronagent status
+
+# Reinstall
+./cronagent uninstall
+./cronagent install
+```
+
+### Can't Find Token?
+
+Make sure `.env` file exists in the root directory:
+```bash
+ls -la .env
+cat .env
+```
+
+### No Tasks Being Processed?
+
+1. Check Todoist API connection:
+   ```bash
+   curl -H "Authorization: Bearer YOUR_TOKEN" \
+        https://api.todoist.com/rest/v2/tasks
+   ```
+
+2. Check logs:
+   ```bash
+   tail -f logs/stdout.log
+   ```
+
+---
+
+## 📂 Project Structure
+
+```
+Root Directory (User-Facing):
+├── 📝 .env                    # Your token (EDIT THIS)
+├── 🎮 cronagent              # Main command (setup/install/status)
+├── 📚 docs/                   # Documentation
+├── 📊 logs/                   # Technical logs
+└── 💬 clean_logs/             # Conversation logs
+
+src/ (Technical - No Need to Touch):
+├── cron_agent.py             # Main application
+├── setup.py                  # Setup script
+├── requirements.txt          # Dependencies
+├── scheduler/                # Platform-specific code
+└── venv/                     # Virtual environment
+```
+
+**You only need to work with files in the root directory!**
+
+---
+
+## 🔐 Security
+
+- ✅ Token stored locally in `.env` (not committed to git)
+- ✅ Runs in your user context (no root/admin needed on macOS/Linux)
+- ✅ All data stays on your machine
+- ✅ No cloud services required
+
+---
+
+## 🤝 Contributing
+
+See `docs/CONTRIBUTING.md` (if you want to modify the code)
+
+---
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/natovichat/cron-agent/issues)
+- **Documentation**: Check `docs/` directory
+- **Email**: [Your email]
+
+---
+
+## 📄 License
+
+[Add your license]
+
+---
+
+## 🎯 Key Features
+
+- 🌍 **Cross-Platform**: Works everywhere (macOS, Linux, Windows)
+- ⏰ **Native Scheduling**: Uses best scheduler per OS
+- 🤖 **AI Integration**: Cursor AI task processing
+- 📝 **Clean Logs**: Separate technical and conversation logs
+- 🔒 **Secure**: Local-only, no cloud dependencies
+- 🎨 **User-Friendly**: Simple commands, clear structure
+- 📊 **Statistics**: Real-time execution stats
+
+---
+
+## 🏆 Version
+
+**v2.0.0** - Cross-Platform Edition
+
+See `CHANGELOG.md` for version history.
+
+---
+
+**Built with ❤️ for cross-platform automation**
+
+Need help? Check `docs/setup-guide.html` for detailed instructions!

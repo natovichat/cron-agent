@@ -14,12 +14,8 @@
 
 These files are **already** in root and should stay:
 - ✅ `.env` - Configuration (auto-generated)
-- ✅ `.env.example` - Template
 - ✅ `cronagent` - Main launcher script
 - ✅ `.gitignore` - Git configuration
-- ✅ `README.md` - Main documentation
-- ✅ `CHANGELOG.md` - Version history
-- ✅ `IMPLEMENTATION_SUMMARY.md` - Technical summary
 - ✅ `setup-guide.html` - **EXCEPTION: Can be created/updated in root**
 
 ## Where to Put New Files
