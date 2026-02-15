@@ -64,7 +64,7 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart={python_path} {self.script_path}
+ExecStart={python_path} {self.script_path} --once
 WorkingDirectory={self.project_root}
 StandardOutput=append:{self.project_root / "logs" / "stdout.log"}
 StandardError=append:{self.project_root / "logs" / "stderr.log"}

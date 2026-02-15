@@ -32,7 +32,9 @@ Get your token from: https://todoist.com/app/settings/integrations/developer
 
 **That's it! 🎉** Your agent is now running automatically every 5 minutes.
 
-> **Note:** The agent validates your `.env` configuration before running. If your token is missing or invalid, you'll see a clear error message with instructions to fix it.
+> **Note:** The agent uses **OS-level scheduling** (LaunchAgent/systemd/cron) - not a continuously running process. This is more efficient and reliable. The script runs once per interval, processes tasks, and exits cleanly.
+
+> **Configuration:** The agent validates your `.env` configuration before each run. If your token is missing or invalid, you'll see a clear error message with instructions to fix it.
 
 ---
 

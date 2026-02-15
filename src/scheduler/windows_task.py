@@ -50,9 +50,9 @@ class WindowsTaskScheduler(BaseScheduler):
         # Get Python executable path
         python_path = self.get_python_path()
         
-        # Build command
+        # Build command with --once flag for OS scheduler
         # Use quotes to handle spaces in paths
-        command = f'"{python_path}" "{self.script_path}"'
+        command = f'"{python_path}" "{self.script_path}" --once'
         
         # Create task using schtasks
         try:

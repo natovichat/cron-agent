@@ -246,17 +246,28 @@ class CursorAgent:
     Cursor AI Agent using Cursor CLI
     """
     
-    def __init__(self, clean_logger: CleanLogger = None, use_cli: bool = True):
+    DEFAULT_CODE_LOCATION = "~/personal/cron agent"
+    
+    def __init__(
+        self,
+        clean_logger: CleanLogger = None,
+        use_cli: bool = True,
+        code_location: Optional[str] = None,
+    ):
         """
         Initialize Cursor Agent
         
         Args:
             clean_logger: Logger for conversations
             use_cli: Whether to use Cursor CLI (True) or fallback simulation (False)
+            code_location: Path to the codebase for Cursor context
         """
         self.execution_log = []
         self.clean_logger = clean_logger
         self.use_cli = use_cli
+        self.code_location = code_location or os.getenv(
+            "CODE_LOCATION", self.DEFAULT_CODE_LOCATION
+        )
         self.cursor_cli_path = self._find_cursor_cli()
     
     def _find_cursor_cli(self) -> Optional[str]:
@@ -328,6 +339,21 @@ class CursorAgent:
         self.execution_log.append(result)
         return result
     
+    def _format_prompt(self, task_content: str) -> str:
+        """
+        Format the prompt to include code location context.
+        
+        Args:
+            task_content: Original task content
+            
+        Returns:
+            Formatted prompt with code location
+        """
+        return (
+            f"The code is located at: {self.code_location}\n\n"
+            f"Task:\n{task_content}"
+        )
+    
     def _execute_with_cli(self, task_content: str) -> str:
         """
         Execute task using Cursor CLI
@@ -341,8 +367,12 @@ class CursorAgent:
         try:
             print("   Using Cursor CLI...")
             
-            # Get current working directory as workspace
-            workspace_path = os.getcwd()
+            # Resolve code location to absolute path for workspace
+            expanded_location = os.path.expanduser(self.code_location)
+            workspace_path = str(Path(expanded_location).resolve())
+            
+            # Format the prompt with code location context
+            formatted_prompt = self._format_prompt(task_content)
             
             # Run cursor agent with --print flag for non-interactive mode
             cmd = [
@@ -353,9 +383,10 @@ class CursorAgent:
                 "--workspace", workspace_path,  # Specify workspace
                 "--output-format", "text",
                 "--force",  # Force allow commands
-                task_content
+                formatted_prompt,
             ]
             
+            print(f"   Code location: {self.code_location}")
             print(f"   Workspace: {workspace_path}")
             print(f"   Timeout: 120 seconds")
             
@@ -479,7 +510,13 @@ class CronAgent:
     Main engine of the system - schedules and executes tasks
     """
     
-    def __init__(self, todoist_token: str, clean_log_dir: str = "clean_logs", use_cursor_cli: bool = True):
+    def __init__(
+        self,
+        todoist_token: str,
+        clean_log_dir: str = "clean_logs",
+        use_cursor_cli: bool = True,
+        code_location: Optional[str] = None,
+    ):
         """
         Initialize the Cron Agent
         
@@ -487,10 +524,15 @@ class CronAgent:
             todoist_token: Todoist API Token
             clean_log_dir: Directory for clean log
             use_cursor_cli: Whether to use Cursor CLI (True) or fallback simulation (False)
+            code_location: Path to the codebase for Cursor context
         """
         self.todoist = TodoistAPI(todoist_token)
         self.clean_logger = CleanLogger(clean_log_dir)
-        self.cursor = CursorAgent(clean_logger=self.clean_logger, use_cli=use_cursor_cli)
+        self.cursor = CursorAgent(
+            clean_logger=self.clean_logger,
+            use_cli=use_cursor_cli,
+            code_location=code_location,
+        )
         self.stats = {
             "total_processed": 0,
             "successful": 0,
@@ -578,17 +620,41 @@ class CronAgent:
         print(f"   ⏱️  Uptime: {str(uptime).split('.')[0]}")
         print("-"*50)
     
+    def run_once(self):
+        """
+        Run the agent once and exit.
+        
+        Used when running via OS scheduler (LaunchAgent/systemd/cron).
+        OS handles the scheduling, script just processes and exits.
+        """
+        print("🚀 Cron Agent - Single Run")
+        print(f"📝 Clean log: {self.clean_logger.get_log_file_path()}")
+        print("="*50)
+        
+        # Process tasks once
+        self.process_tasks()
+        
+        # Print final stats
+        self._print_stats()
+        print("\n✅ Run complete")
+    
     def start(self, interval_seconds: int = 5):
         """
-        Start the Cron Agent
+        Start the Cron Agent with continuous loop
+        
+        Used for manual/testing runs only.
+        For production, use OS scheduler with run_once().
         
         Args:
             interval_seconds: Interval between runs (in seconds)
         """
-        print("🚀 Cron Agent starting!")
+        print("🚀 Cron Agent - Continuous Mode (Testing)")
         print(f"⏰ Will run every {interval_seconds} seconds")
         print(f"📝 Clean log (prompts and responses only): {self.clean_logger.get_log_file_path()}")
         print("🛑 Press Ctrl+C to stop")
+        print()
+        print("ℹ️  Note: This mode is for testing only.")
+        print("   For production, use OS scheduler: ./cronagent install")
         print("="*50)
         
         # Initial run immediately
@@ -638,6 +704,11 @@ def main():
         type=int,
         default=None,
         help="Interval in seconds (default: from REFRESH_INTERVAL_SECONDS in .env)"
+    )
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit (used by OS scheduler)"
     )
     
     args = parser.parse_args()
@@ -794,17 +865,33 @@ def main():
     # Check if Cursor CLI should be used
     use_cursor_cli = os.getenv('USE_CURSOR_CLI', 'true').lower() in ('true', '1', 'yes')
     
+    # Get code location from environment
+    code_location = os.getenv('CODE_LOCATION', CursorAgent.DEFAULT_CODE_LOCATION)
+    
     if use_cursor_cli:
         print("🤖 Cursor CLI mode: ENABLED")
         print("   Tasks will be executed by real Cursor AI")
+        print(f"   Code location: {code_location}")
     else:
         print("⚠️  Cursor CLI mode: DISABLED")
         print("   Tasks will use fallback simulation")
     print()
     
-    # Create and start the agent
-    agent = CronAgent(todoist_token, clean_log_dir=clean_log_dir, use_cursor_cli=use_cursor_cli)
-    agent.start(interval_seconds=interval_seconds)
+    # Create the agent
+    agent = CronAgent(
+        todoist_token,
+        clean_log_dir=clean_log_dir,
+        use_cursor_cli=use_cursor_cli,
+        code_location=code_location,
+    )
+    
+    # Run mode: once (OS scheduler) or continuous (manual)
+    if args.once:
+        # Single run for OS scheduler
+        agent.run_once()
+    else:
+        # Continuous loop for manual testing
+        agent.start(interval_seconds=interval_seconds)
 
 
 if __name__ == "__main__":

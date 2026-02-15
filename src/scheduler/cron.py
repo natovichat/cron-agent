@@ -97,7 +97,7 @@ class CronScheduler(BaseScheduler):
         python_path = self.get_python_path()
         log_file = self.project_root / "logs" / "cron.log"
         
-        return f"cd {self.project_root} && {python_path} {self.script_path} >> {log_file} 2>&1"
+        return f"cd {self.project_root} && {python_path} {self.script_path} --once >> {log_file} 2>&1"
     
     def install(self) -> bool:
         """

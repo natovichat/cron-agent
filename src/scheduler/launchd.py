@@ -70,6 +70,7 @@ class LaunchdScheduler(BaseScheduler):
     <array>
         <string>{python_path}</string>
         <string>{self.script_path}</string>
+        <string>--once</string>
     </array>
     
     <key>StartInterval</key>
