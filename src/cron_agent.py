@@ -486,9 +486,13 @@ def main():
         return
     
     # Regular execution (no scheduler management)
+    # Change to project root directory (where .env and config.json are)
+    project_root = Path(__file__).parent.parent
+    os.chdir(project_root)
+    
     # קריאת Token מ-environment variable
     from dotenv import load_dotenv
-    load_dotenv()  # Load from .env file
+    load_dotenv(project_root / ".env")  # Load from .env file in root
     
     todoist_token = os.getenv('TODOIST_TOKEN')
     
@@ -501,9 +505,23 @@ def main():
         print("3. הרץ את הסקריפט שוב")
         return
     
+    # Load configuration from config.json
+    config_file = project_root / "config.json"
+    config = {}
+    if config_file.exists():
+        try:
+            with open(config_file, 'r') as f:
+                config = json.load(f)
+        except Exception as e:
+            print(f"⚠️  Warning: Could not load config.json: {e}")
+    
+    # Get configuration values
+    clean_log_dir = config.get('clean_log_directory', 'clean_logs')
+    interval_seconds = 5  # For manual runs, keep 5 seconds for demo
+    
     # יצירה והפעלה של ה-agent
-    agent = CronAgent(todoist_token)
-    agent.start(interval_seconds=5)  # כל 5 שניות
+    agent = CronAgent(todoist_token, clean_log_dir=clean_log_dir)
+    agent.start(interval_seconds=interval_seconds)
 
 
 if __name__ == "__main__":

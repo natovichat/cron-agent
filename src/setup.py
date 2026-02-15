@@ -55,8 +55,10 @@ class SetupManager:
     
     def __init__(self):
         self.os_name = platform.system()
-        self.project_root = Path(__file__).parent.resolve()
-        self.venv_path = self.project_root / "venv"
+        # Project root is one level up from src/
+        self.src_dir = Path(__file__).parent.resolve()
+        self.project_root = self.src_dir.parent
+        self.venv_path = self.src_dir / "venv"
         
     def run(self):
         """Run the complete setup process."""
@@ -122,21 +124,21 @@ class SetupManager:
         if self.os_name == "Windows":
             return self.venv_path / "Scripts" / "pip.exe"
         else:
-            return self.venv_path / "bin" / "pip"
+            return self.venv_path / "bin" / "pip3"
     
     def get_python_path(self) -> Path:
         """Get path to Python executable in venv."""
         if self.os_name == "Windows":
             return self.venv_path / "Scripts" / "python.exe"
         else:
-            return self.venv_path / "bin" / "python"
+            return self.venv_path / "bin" / "python3"
     
     def install_dependencies(self):
         """Install Python dependencies."""
         print(f"{Colors.BLUE}📥 מתקין תלויות...{Colors.ENDC}")
         
         pip = self.get_pip_path()
-        requirements = self.project_root / "requirements.txt"
+        requirements = self.src_dir / "requirements.txt"
         
         if not requirements.exists():
             print(f"{Colors.WARNING}⚠️  requirements.txt לא נמצא{Colors.ENDC}")
@@ -203,20 +205,24 @@ class SetupManager:
         
         # Step 1: Configure token
         print(f"{Colors.CYAN}1. הגדר את Todoist Token:{Colors.ENDC}")
-        print(f"   - ערוך את קובץ .env")
+        print(f"   - ערוך את קובץ .env (ברמה הראשית של הפרויקט)")
         print(f"   - הוסף: TODOIST_TOKEN=your-token-here")
         print(f"   - קבל Token מ: https://todoist.com/app/settings/integrations/developer")
         print()
         
-        # Step 2: Install scheduler
-        print(f"{Colors.CYAN}2. התקן scheduler:{Colors.ENDC}")
-        python_cmd = "python" if self.os_name == "Windows" else "python3"
-        print(f"   {python_cmd} cron_agent.py --install")
+        # Step 2: (Optional) Adjust config
+        print(f"{Colors.CYAN}2. (אופציונלי) התאם הגדרות ב-config.json:{Colors.ENDC}")
+        print(f"   - polling_interval_minutes: {Colors.BOLD}5{Colors.ENDC} (ברירת מחדל)")
         print()
         
-        # Step 3: Verify
-        print(f"{Colors.CYAN}3. בדוק status:{Colors.ENDC}")
-        print(f"   {python_cmd} cron_agent.py --status")
+        # Step 3: Install scheduler
+        print(f"{Colors.CYAN}3. התקן scheduler:{Colors.ENDC}")
+        print(f"   ./cronagent --install")
+        print()
+        
+        # Step 4: Verify
+        print(f"{Colors.CYAN}4. בדוק status:{Colors.ENDC}")
+        print(f"   ./cronagent --status")
         print()
         
         # OS-specific notes

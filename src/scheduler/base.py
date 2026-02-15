@@ -26,13 +26,15 @@ class BaseScheduler(ABC):
         Initialize scheduler.
         
         Args:
-            script_path: Absolute path to cron_agent.py
+            script_path: Absolute path to cron_agent.py (in src/)
             interval_minutes: Interval between runs in minutes
         """
         self.script_path = script_path.resolve()
         self.interval_minutes = interval_minutes
-        self.project_root = self.script_path.parent
-        self.venv_path = self.project_root / "venv"
+        # script_path is in src/, so project root is one level up
+        self.src_dir = self.script_path.parent
+        self.project_root = self.src_dir.parent
+        self.venv_path = self.src_dir / "venv"
     
     @abstractmethod
     def install(self) -> bool:
@@ -118,7 +120,7 @@ class BaseScheduler(ABC):
         if platform.system() == "Windows":
             return self.venv_path / "Scripts" / "python.exe"
         else:
-            return self.venv_path / "bin" / "python"
+            return self.venv_path / "bin" / "python3"
     
     def ensure_log_dirs(self) -> None:
         """Create log directories if they don't exist."""

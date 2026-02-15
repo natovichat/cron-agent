@@ -27,6 +27,7 @@ wheels/
 
 # Virtual environments
 venv/
+src/venv/
 ENV/
 env/
 .venv
@@ -42,6 +43,7 @@ env/
 # Logs
 *.log
 logs/
+clean_logs/
 
 # Testing
 .pytest_cache/
