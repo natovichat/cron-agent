@@ -702,7 +702,14 @@ def main():
                 
                 print("📦 Installing scheduler...")
                 print(f"   Type: {scheduler.__class__.__name__}")
-                print(f"   Interval: {interval_seconds} seconds ({interval_minutes} minutes)")
+                
+                # Display interval correctly
+                if interval_seconds < 60:
+                    print(f"   Interval: {interval_seconds} seconds")
+                elif interval_seconds % 60 == 0:
+                    print(f"   Interval: {interval_minutes} minutes")
+                else:
+                    print(f"   Interval: {interval_seconds} seconds ({interval_minutes}m {interval_seconds % 60}s)")
                 print()
                 
                 if scheduler.install():
