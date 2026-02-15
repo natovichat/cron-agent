@@ -1,0 +1,220 @@
+# Root Directory Protection Rule
+
+**MANDATORY**: Do NOT create or place files in the project root directory unless explicitly requested by the user.
+
+## Golden Rule
+
+```
+🚫 NO NEW FILES IN ROOT (unless user explicitly asks)
+✅ USE PROPER SUBDIRECTORIES
+📁 KEEP ROOT CLEAN AND USER-FRIENDLY
+```
+
+## Allowed Root Files (Existing Only)
+
+These files are **already** in root and should stay:
+- ✅ `.env` - Configuration (auto-generated)
+- ✅ `.env.example` - Template
+- ✅ `cronagent` - Main launcher script
+- ✅ `.gitignore` - Git configuration
+- ✅ `README.md` - Main documentation
+- ✅ `CHANGELOG.md` - Version history
+- ✅ `IMPLEMENTATION_SUMMARY.md` - Technical summary
+- ✅ `setup-guide.html` - **EXCEPTION: Can be created/updated in root**
+
+## Where to Put New Files
+
+### 📚 Documentation Files
+```
+❌ /new-guide.md          # WRONG - Root
+✅ docs/new-guide.md      # CORRECT - Documentation directory
+```
+
+### 🔧 Code/Scripts
+```
+❌ /helper.py             # WRONG - Root
+✅ src/helper.py          # CORRECT - Source directory
+```
+
+### 📊 Log Files
+```
+❌ /output.log            # WRONG - Root
+✅ logs/output.log        # CORRECT - Logs directory
+```
+
+### 💬 Conversation Logs
+```
+❌ /conversation.log      # WRONG - Root
+✅ clean_logs/conversation.log  # CORRECT - Clean logs directory
+```
+
+### ⚙️ Configuration Files
+```
+❌ /settings.json         # WRONG - Root
+✅ src/config/settings.json  # CORRECT - Config in source
+```
+
+### 🧪 Test Files
+```
+❌ /test_something.py     # WRONG - Root
+✅ tests/test_something.py  # CORRECT - Tests directory
+```
+
+### 📝 Temporary Files
+```
+❌ /temp.txt              # WRONG - Root
+✅ /tmp/temp.txt          # CORRECT - System temp
+or
+✅ logs/temp.txt          # CORRECT - Project logs
+```
+
+## Project Structure to Follow
+
+```
+cron-agent/
+├── .env                    # ✅ Config (existing)
+├── .env.example            # ✅ Template (existing)
+├── cronagent              # ✅ Launcher (existing)
+├── setup-guide.html       # ✅ EXCEPTION: Allowed in root
+├── README.md              # ✅ Main docs (existing)
+├── CHANGELOG.md           # ✅ History (existing)
+├── IMPLEMENTATION_SUMMARY.md  # ✅ Technical (existing)
+│
+├── docs/                  # 📚 ALL documentation goes here
+│   ├── setup-guide.html  # Can also be here
+│   ├── FILE_STRUCTURE.md
+│   └── *.md
+│
+├── src/                   # 🔧 ALL code goes here
+│   ├── cron_agent.py
+│   ├── setup.py
+│   ├── scheduler/
+│   └── venv/
+│
+├── logs/                  # 📊 ALL technical logs go here
+│   ├── stdout.log
+│   └── stderr.log
+│
+└── clean_logs/            # 💬 ALL conversation logs go here
+    └── conversation_*.log
+```
+
+## When User Asks for a File
+
+### ❌ Bad - Assuming Root Location
+```
+User: "Create a new guide"
+AI: *Creates /new-guide.md*  # WRONG!
+```
+
+### ✅ Good - Use Appropriate Directory
+```
+User: "Create a new guide"
+AI: *Creates docs/new-guide.md*  # CORRECT!
+```
+
+### ✅ Exception - User Explicitly Requests Root
+```
+User: "Create quick-start.md in the root folder"
+AI: *Creates /quick-start.md*  # OK - User explicitly requested root
+```
+
+### ✅ Exception - setup-guide.html
+```
+User: "Update the setup guide"
+AI: *Updates /setup-guide.html OR docs/setup-guide.html*  # Both OK
+```
+
+## Rationale
+
+### Why Keep Root Clean?
+1. **User Experience**: Non-technical users see a clean, simple structure
+2. **Discoverability**: Important files (`.env`, `cronagent`) are easy to find
+3. **Professional**: Clean root = professional project
+4. **Maintainability**: Files in logical directories are easier to maintain
+5. **Git**: Cleaner git status and diffs
+
+### The Root Philosophy
+> The root directory is the **user's view** of the project.
+> Only files users **directly interact with** belong here.
+> Everything else belongs in **subdirectories**.
+
+## Enforcement
+
+**Before creating ANY file:**
+
+1. ✅ Check: Is this file in the allowed root files list?
+2. ✅ Check: Did user explicitly request root location?
+3. ✅ Check: Is this `setup-guide.html`?
+4. ❌ If NO to all three → Use appropriate subdirectory
+
+## Quick Decision Tree
+
+```
+Need to create a file?
+│
+├─ Is it in allowed root files list? → YES → Use root
+│                                    → NO → Continue
+│
+├─ Did user say "in root" or "in project root"? → YES → Use root
+│                                                 → NO → Continue
+│
+├─ Is it setup-guide.html? → YES → Use root (or docs/)
+│                           → NO → Continue
+│
+└─ Use appropriate subdirectory:
+   ├─ Documentation? → docs/
+   ├─ Code/Scripts? → src/
+   ├─ Logs? → logs/ or clean_logs/
+   ├─ Tests? → tests/
+   └─ Config? → src/config/
+```
+
+## Examples
+
+### ✅ Correct Behavior
+
+```python
+# User: "Add logging configuration"
+# ✅ CORRECT: Create in src/config/
+src/config/logging.json
+
+# User: "Create architecture documentation"
+# ✅ CORRECT: Create in docs/
+docs/architecture.md
+
+# User: "Add helper utilities"
+# ✅ CORRECT: Create in src/
+src/utils.py
+
+# User: "Update setup guide"
+# ✅ CORRECT: Can use root (exception)
+setup-guide.html  # or docs/setup-guide.html
+```
+
+### ❌ Wrong Behavior
+
+```python
+# User: "Add logging configuration"
+# ❌ WRONG: Don't create in root
+/logging.json  # Should be: src/config/logging.json
+
+# User: "Create architecture documentation"  
+# ❌ WRONG: Don't create in root
+/architecture.md  # Should be: docs/architecture.md
+
+# User: "Add helper utilities"
+# ❌ WRONG: Don't create in root
+/utils.py  # Should be: src/utils.py
+```
+
+## Summary
+
+```
+🚫 Root is for USER-FACING files only
+📁 Code, docs, logs → Subdirectories
+✅ Exception: setup-guide.html can be in root
+⚠️ Only add to root if user EXPLICITLY requests it
+```
+
+**When in doubt: Use a subdirectory!**
