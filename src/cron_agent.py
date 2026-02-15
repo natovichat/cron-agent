@@ -417,7 +417,6 @@ def main():
     
     # Handle scheduler management commands
     if args.install or args.uninstall or args.status:
-        from pathlib import Path
         from scheduler.factory import create_scheduler
         
         script_path = Path(__file__).resolve()
