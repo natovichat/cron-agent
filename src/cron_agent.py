@@ -347,18 +347,35 @@ class CursorAgent:
     
     def _format_prompt(self, task_content: str) -> str:
         """
-        Format the prompt to include code location context.
+        Format the prompt with system instructions for optimal Cursor AI execution.
         
         Args:
-            task_content: Original task content
+            task_content: Original task content from Todoist
             
         Returns:
-            Formatted prompt with code location
+            Formatted prompt with system instructions and task
         """
-        return (
-            f"The code is located at: {self.code_location}\n\n"
-            f"Task:\n{task_content}"
-        )
+        system_prompt = """You are a helpful AI assistant executing tasks from Todoist.
+
+IMPORTANT INSTRUCTIONS:
+- Be concise and direct in your responses
+- Provide actionable results, not explanations of what you would do
+- For calculations: Return only the answer (e.g., "15" or "The answer is 15")
+- For questions: Provide clear, brief answers
+- For commands: Execute and return the result or confirmation
+- For research: Summarize key findings in 2-3 sentences
+- For code tasks: Provide the code or implementation status
+- Keep responses under 200 words unless the task requires more detail
+
+RESPONSE FORMAT:
+- Start with the answer/result immediately
+- Add brief context only if necessary
+- Use emojis sparingly (only if it adds clarity)
+- No need to restate the task
+
+"""
+        
+        return system_prompt + f"TASK:\n{task_content}"
     
     def _execute_with_cli(self, task_content: str) -> str:
         """
