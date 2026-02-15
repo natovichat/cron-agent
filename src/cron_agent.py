@@ -96,6 +96,54 @@ class TodoistAPI:
             "Content-Type": "application/json"
         }
     
+    def validate_token(self) -> bool:
+        """
+        Validate that the Todoist API token is valid by testing the API connection.
+        
+        Returns:
+            True if token is valid, False otherwise
+        """
+        try:
+            # Test the token by fetching projects (lightweight endpoint)
+            response = requests.get(
+                f"{self.base_url}/projects",
+                headers=self.headers,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                return True
+            elif response.status_code == 401:
+                print(f"❌ Authentication failed: Invalid Todoist API token")
+                print(f"   Status code: {response.status_code}")
+                return False
+            elif response.status_code == 403:
+                print(f"❌ Access forbidden: Token doesn't have required permissions")
+                print(f"   Status code: {response.status_code}")
+                return False
+            elif response.status_code == 410:
+                print(f"❌ API endpoint no longer available (410 Gone)")
+                print(f"   The API version or endpoint may have changed")
+                print(f"   Please check Todoist API documentation")
+                return False
+            else:
+                print(f"❌ Unexpected response from Todoist API")
+                print(f"   Status code: {response.status_code}")
+                print(f"   Response: {response.text[:200]}")
+                return False
+                
+        except requests.exceptions.Timeout:
+            print(f"❌ Connection timeout: Could not reach Todoist API")
+            print(f"   Check your internet connection")
+            return False
+        except requests.exceptions.ConnectionError:
+            print(f"❌ Connection error: Could not connect to Todoist API")
+            print(f"   Check your internet connection")
+            return False
+        except Exception as e:
+            print(f"❌ Error validating Todoist token: {e}")
+            return False
+    
     def get_tasks(self) -> List[Dict]:
         """
         Get all active tasks
@@ -425,6 +473,33 @@ def main():
             scheduler = create_scheduler(script_path, interval_minutes=args.interval)
             
             if args.install:
+                # Validate Todoist token before installing
+                print("🔍 Validating configuration...")
+                
+                # Load .env file
+                from dotenv import load_dotenv
+                project_root = Path(__file__).parent.parent
+                load_dotenv(project_root / ".env")
+                
+                todoist_token = os.getenv('TODOIST_TOKEN')
+                
+                if not todoist_token:
+                    print("❌ Error: TODOIST_TOKEN not configured!")
+                    print("\nPlease run setup first:")
+                    print("  ./cronagent setup")
+                    return
+                
+                # Validate token
+                todoist_api = TodoistAPI(todoist_token)
+                if not todoist_api.validate_token():
+                    print("\n❌ Failed to validate Todoist API token!")
+                    print("\nPlease fix the token and run setup again:")
+                    print("  ./cronagent setup")
+                    return
+                
+                print("✅ Configuration validated successfully!")
+                print()
+                
                 print("📦 Installing scheduler...")
                 print(f"   Type: {scheduler.__class__.__name__}")
                 print(f"   Interval: {args.interval} minutes")
@@ -437,9 +512,9 @@ def main():
                         print("✅ Scheduler installed and started successfully!")
                         print()
                         print("Next steps:")
-                        print("  1. Make sure TODOIST_TOKEN is set in .env file")
-                        print(f"  2. Check status: python {Path(__file__).name} --status")
-                        print("  3. View logs in logs/ and clean_logs/ directories")
+                        print("  1. Check status: ./cronagent status")
+                        print("  2. View logs in logs/ and clean_logs/ directories")
+                        print("  3. Monitor task execution in Todoist")
                     else:
                         print("❌ Failed to start scheduler")
                 else:
@@ -502,6 +577,26 @@ def main():
         print("   TODOIST_TOKEN=your-token-here")
         print("3. Run the script again")
         return
+    
+    # Validate Todoist API token before starting
+    print("🔍 Validating Todoist API connection...")
+    todoist_api = TodoistAPI(todoist_token)
+    
+    if not todoist_api.validate_token():
+        print("\n❌ Failed to validate Todoist API token!")
+        print("\nPossible issues:")
+        print("1. Token is invalid or expired")
+        print("2. Internet connection issue")
+        print("3. Todoist API is down or endpoint has changed")
+        print("\nHow to fix:")
+        print("1. Get a new token from: https://todoist.com/app/settings/integrations/developer")
+        print("2. Update your .env file with the new token")
+        print("3. Make sure you have internet connection")
+        print("4. Try running: ./cronagent setup")
+        return
+    
+    print("✅ Todoist API connection validated successfully!")
+    print()
     
     # Use default configuration
     clean_log_dir = 'clean_logs'
