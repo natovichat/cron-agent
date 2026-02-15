@@ -16,7 +16,6 @@ import schedule
 import requests
 from datetime import datetime
 from typing import List, Dict, Optional
-import json
 from pathlib import Path
 
 
@@ -505,18 +504,8 @@ def main():
         print("3. הרץ את הסקריפט שוב")
         return
     
-    # Load configuration from config.json
-    config_file = project_root / "config.json"
-    config = {}
-    if config_file.exists():
-        try:
-            with open(config_file, 'r') as f:
-                config = json.load(f)
-        except Exception as e:
-            print(f"⚠️  Warning: Could not load config.json: {e}")
-    
-    # Get configuration values
-    clean_log_dir = config.get('clean_log_directory', 'clean_logs')
+    # Use default configuration
+    clean_log_dir = 'clean_logs'
     interval_seconds = 5  # For manual runs, keep 5 seconds for demo
     
     # יצירה והפעלה של ה-agent

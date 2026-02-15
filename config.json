@@ -1,6 +1,0 @@
-{
-  "polling_interval_minutes": 5,
-  "todoist_api_url": "https://api.todoist.com/rest/v2",
-  "log_directory": "logs",
-  "clean_log_directory": "clean_logs"
-}

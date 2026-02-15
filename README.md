@@ -13,7 +13,7 @@
 
 ### 1. Setup
 ```bash
-./setup
+./cronagent setup
 ```
 This installs everything you need (takes ~30 seconds).
 
@@ -30,7 +30,7 @@ Get your token from: https://todoist.com/app/settings/integrations/developer
 
 ### 3. Install Scheduler
 ```bash
-./cronagent --install
+./cronagent install
 ```
 
 **That's it! 🎉** Your agent is now running automatically every 5 minutes.
@@ -44,7 +44,7 @@ Get your token from: https://todoist.com/app/settings/integrations/developer
 ```
 cron-agent/
 ├── .env                   # 🔑 Your Todoist token (EDIT THIS)
-├── config.json            # ⚙️ Settings (polling rate, directories)
+├── cronagent              # 🎮 Main command (setup, install, status)
 │
 ├── logs/                  # 📊 Technical logs (debugging)
 ├── clean_logs/            # 💬 Conversation logs (prompts & responses)
@@ -64,15 +64,14 @@ TODOIST_TOKEN=your_token_here
 ```
 **This is the ONLY file you must edit!**
 
-#### `config.json` (Settings)
-```json
-{
-  "polling_interval_minutes": 5,
-  "log_directory": "logs",
-  "clean_log_directory": "clean_logs"
-}
+#### `cronagent` (Main Command)
+```bash
+./cronagent setup      # First-time setup
+./cronagent install    # Install scheduler  
+./cronagent status     # Check if running
+./cronagent uninstall  # Remove scheduler
 ```
-**Adjust polling rate if needed** (default: 5 minutes)
+**All you need to manage the agent!**
 
 ---
 
@@ -81,14 +80,17 @@ TODOIST_TOKEN=your_token_here
 ### Basic Commands:
 
 ```bash
-# Install scheduler (first time)
-./cronagent --install
+# First time setup
+./cronagent setup
+
+# Install scheduler
+./cronagent install
 
 # Check if it's running
-./cronagent --status
+./cronagent status
 
 # Stop scheduler
-./cronagent --uninstall
+./cronagent uninstall
 
 # Manual run (for testing)
 ./cronagent
@@ -110,17 +112,15 @@ tail -f logs/stdout.log
 
 ### Change Polling Interval
 
-Edit `config.json`:
-```json
-{
-  "polling_interval_minutes": 10
-}
+Pass the interval when installing:
+```bash
+./cronagent install --interval 10
 ```
 
-Then reinstall:
+Or reinstall with new interval:
 ```bash
-./cronagent --uninstall
-./cronagent --install
+./cronagent uninstall
+./cronagent install --interval 10
 ```
 
 ---
@@ -163,11 +163,11 @@ Then reinstall:
 
 ```bash
 # Check status
-./cronagent --status
+./cronagent status
 
 # Reinstall
-./cronagent --uninstall
-./cronagent --install
+./cronagent uninstall
+./cronagent install
 ```
 
 ### Can't Find Token?
@@ -198,12 +198,10 @@ cat .env
 ```
 Root Directory (User-Facing):
 ├── 📝 .env                    # Your token (EDIT THIS)
-├── ⚙️ config.json             # Settings
+├── 🎮 cronagent              # Main command (setup/install/status)
 ├── 📚 docs/                   # Documentation
 ├── 📊 logs/                   # Technical logs
-├── 💬 clean_logs/             # Conversation logs
-├── 🚀 setup                   # Setup command
-└── 🎮 cronagent              # Main command
+└── 💬 clean_logs/             # Conversation logs
 
 src/ (Technical - No Need to Touch):
 ├── cron_agent.py             # Main application

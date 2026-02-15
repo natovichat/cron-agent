@@ -210,18 +210,13 @@ class SetupManager:
         print(f"   - קבל Token מ: https://todoist.com/app/settings/integrations/developer")
         print()
         
-        # Step 2: (Optional) Adjust config
-        print(f"{Colors.CYAN}2. (אופציונלי) התאם הגדרות ב-config.json:{Colors.ENDC}")
-        print(f"   - polling_interval_minutes: {Colors.BOLD}5{Colors.ENDC} (ברירת מחדל)")
+        # Step 2: Install scheduler
+        print(f"{Colors.CYAN}2. התקן scheduler:{Colors.ENDC}")
+        print(f"   ./cronagent install")
         print()
         
-        # Step 3: Install scheduler
-        print(f"{Colors.CYAN}3. התקן scheduler:{Colors.ENDC}")
-        print(f"   ./cronagent --install")
-        print()
-        
-        # Step 4: Verify
-        print(f"{Colors.CYAN}4. בדוק status:{Colors.ENDC}")
+        # Step 3: Verify
+        print(f"{Colors.CYAN}3. בדוק status:{Colors.ENDC}")
         print(f"   ./cronagent --status")
         print()
         

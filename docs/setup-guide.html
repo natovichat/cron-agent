@@ -477,10 +477,10 @@ cd cron-agent
                         </div>
 
                         <div class="step">
-                            <h4>Run Setup Script</h4>
+                            <h4>Run Setup</h4>
                             <div class="code-block">
-<span class="comment"># Run the simple setup command</span>
-./setup
+<span class="comment"># Run the setup command</span>
+./cronagent setup
                             </div>
                             <p>This will automatically:</p>
                             <ul style="margin-left: 50px;">
@@ -515,7 +515,7 @@ TODOIST_TOKEN=<span class="string">your_token_here</span>
                             <h4>Install Scheduler (LaunchAgent)</h4>
                             <div class="code-block">
 <span class="comment"># Install and start the scheduler</span>
-./cronagent --install
+./cronagent install
                             </div>
                             <p>This creates and loads the LaunchAgent that will run your cron agent every 5 minutes.</p>
                             <div class="warning">
@@ -527,7 +527,7 @@ TODOIST_TOKEN=<span class="string">your_token_here</span>
                             <h4>Verify It's Running</h4>
                             <div class="code-block">
 <span class="comment"># Check scheduler status</span>
-./cronagent --status
+./cronagent status
 
 <span class="comment"># View technical logs</span>
 tail -f logs/stdout.log
@@ -546,10 +546,10 @@ cat clean_logs/conversation_*.log
                     <h3>Management Commands</h3>
                     <div class="code-block">
 <span class="comment"># Check status</span>
-./cronagent --status
+./cronagent status
 
 <span class="comment"># Uninstall scheduler</span>
-./cronagent --uninstall
+./cronagent uninstall
 
 <span class="comment"># Manual run (for testing)</span>
 ./cronagent
@@ -657,10 +657,10 @@ cd cron-agent
                         </div>
 
                         <div class="step">
-                            <h4>Run Setup Script</h4>
+                            <h4>Run Setup</h4>
                             <div class="code-block">
-<span class="comment"># Run the simple setup command</span>
-./setup
+<span class="comment"># Run the setup command</span>
+./cronagent setup
                             </div>
                             <p>Auto-installs everything in <code>src/venv/</code></p>
                         </div>
@@ -680,7 +680,7 @@ TODOIST_TOKEN=<span class="string">your_token_here</span>
                             <h4>Install Scheduler</h4>
                             <div class="code-block">
 <span class="comment"># Installs systemd timer or cron (auto-detected)</span>
-./cronagent --install
+./cronagent install
                             </div>
                             <p><strong>systemd:</strong> Creates user timer in <code>~/.config/systemd/user/</code></p>
                             <p><strong>cron:</strong> Adds entry to user crontab</p>
@@ -690,7 +690,7 @@ TODOIST_TOKEN=<span class="string">your_token_here</span>
                             <h4>Verify</h4>
                             <div class="code-block">
 <span class="comment"># Check status</span>
-./cronagent --status
+./cronagent status
 
 <span class="comment"># View logs</span>
 tail -f logs/stdout.log
@@ -720,10 +720,10 @@ crontab -l | grep cronagent
                     <h3>Management Commands</h3>
                     <div class="code-block">
 <span class="comment"># Check status</span>
-./cronagent --status
+./cronagent status
 
 <span class="comment"># Uninstall</span>
-./cronagent --uninstall
+./cronagent uninstall
 
 <span class="comment"># Manual test run</span>
 ./cronagent
@@ -790,7 +790,7 @@ cd cron-agent
                             <h4>Run Setup</h4>
                             <div class="code-block">
 <span class="comment"># Run setup (PowerShell or cmd)</span>
-python setup
+python cronagent setup
                             </div>
                             <p>Creates virtual environment in <code>src\venv\</code></p>
                         </div>
@@ -810,7 +810,7 @@ TODOIST_TOKEN=<span class="string">your_token_here</span>
                             <h4>Install Task Scheduler Entry</h4>
                             <div class="code-block">
 <span class="comment"># Run as administrator (right-click PowerShell → Run as Administrator)</span>
-python cronagent --install
+python cronagent install
                             </div>
                             <p>Creates a scheduled task that runs every 5 minutes</p>
                         </div>
@@ -819,7 +819,7 @@ python cronagent --install
                             <h4>Verify</h4>
                             <div class="code-block">
 <span class="comment"># Check status</span>
-python cronagent --status
+python cronagent status
 
 <span class="comment"># View in Task Scheduler GUI</span>
 taskschd.msc
@@ -835,10 +835,10 @@ taskschd.msc
                     <h3>Management Commands</h3>
                     <div class="code-block">
 <span class="comment"># Check status</span>
-python cronagent --status
+python cronagent status
 
 <span class="comment"># Uninstall</span>
-python cronagent --uninstall
+python cronagent uninstall
 
 <span class="comment"># Manual test</span>
 python cronagent
@@ -860,10 +860,7 @@ python cronagent
 cron-agent/
 ├── <span class="important">.env</span>                      🔑 Your Todoist token (EDIT THIS)
 ├── .env.example               📝 Token template
-├── <span class="important">config.json</span>                ⚙️ Settings (polling rate, directories)
-│
-├── <span class="important">setup</span>                      🚀 Setup command
-├── <span class="important">cronagent</span>                  🎮 Main command (--install, --status, etc.)
+├── <span class="important">cronagent</span>                  🎮 Main command (setup, install, status, etc.)
 │
 ├── <span class="dir">logs/</span>                      📊 Technical logs
 │   ├── stdout.log            Standard output
@@ -923,18 +920,8 @@ cron-agent/
                                 <td>✅ Yes (required)</td>
                             </tr>
                             <tr>
-                                <td><code>config.json</code></td>
-                                <td>Polling interval, log directories</td>
-                                <td>✅ Yes (optional)</td>
-                            </tr>
-                            <tr>
-                                <td><code>setup</code></td>
-                                <td>Run setup (one time)</td>
-                                <td>❌ No (run it)</td>
-                            </tr>
-                            <tr>
                                 <td><code>cronagent</code></td>
-                                <td>Manage scheduler</td>
+                                <td>All-in-one command (setup/install/status)</td>
                                 <td>❌ No (run it)</td>
                             </tr>
                             <tr>
@@ -956,7 +943,7 @@ cron-agent/
                     </table>
 
                     <div class="success">
-                        <strong>Simple!</strong> You only need to edit <code>.env</code> (and optionally <code>config.json</code>). Everything else is automated!
+                        <strong>Simple!</strong> You only need to edit <code>.env</code>. Use <code>./cronagent</code> for everything else!
                     </div>
                 </div>
             </div>
@@ -1002,9 +989,9 @@ cron-agent/
                             </tr>
                             <tr>
                                 <td><strong>Status Command</strong></td>
-                                <td><code>./cronagent --status</code></td>
-                                <td><code>./cronagent --status</code></td>
-                                <td><code>python cronagent --status</code></td>
+                                <td><code>./cronagent status</code></td>
+                                <td><code>./cronagent status</code></td>
+                                <td><code>python cronagent status</code></td>
                             </tr>
                             <tr>
                                 <td><strong>View Logs</strong></td>
@@ -1014,9 +1001,9 @@ cron-agent/
                             </tr>
                             <tr>
                                 <td><strong>Uninstall</strong></td>
-                                <td><code>./cronagent --uninstall</code></td>
-                                <td><code>./cronagent --uninstall</code></td>
-                                <td><code>python cronagent --uninstall</code></td>
+                                <td><code>./cronagent uninstall</code></td>
+                                <td><code>./cronagent uninstall</code></td>
+                                <td><code>python cronagent uninstall</code></td>
                             </tr>
                         </tbody>
                     </table>
@@ -1064,20 +1051,20 @@ cron-agent/
                     <h2>Common Commands (All Platforms)</h2>
                     <div class="code-block">
 <span class="comment"># Setup (first time only)</span>
-./setup                          <span class="comment"># macOS/Linux</span>
-python setup                     <span class="comment"># Windows</span>
+./cronagent setup                <span class="comment"># macOS/Linux</span>
+python cronagent setup           <span class="comment"># Windows</span>
 
 <span class="comment"># Install scheduler</span>
-./cronagent --install            <span class="comment"># macOS/Linux</span>
-python cronagent --install       <span class="comment"># Windows (as admin)</span>
+./cronagent install              <span class="comment"># macOS/Linux</span>
+python cronagent install         <span class="comment"># Windows (as admin)</span>
 
 <span class="comment"># Check status</span>
-./cronagent --status             <span class="comment"># macOS/Linux</span>
-python cronagent --status        <span class="comment"># Windows</span>
+./cronagent status               <span class="comment"># macOS/Linux</span>
+python cronagent status          <span class="comment"># Windows</span>
 
 <span class="comment"># Uninstall scheduler</span>
-./cronagent --uninstall          <span class="comment"># macOS/Linux</span>
-python cronagent --uninstall     <span class="comment"># Windows (as admin)</span>
+./cronagent uninstall            <span class="comment"># macOS/Linux</span>
+python cronagent uninstall       <span class="comment"># Windows (as admin)</span>
 
 <span class="comment"># Manual test run</span>
 ./cronagent                      <span class="comment"># macOS/Linux</span>

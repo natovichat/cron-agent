@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
-Cron Agent launcher.
-Simple wrapper that calls src/cron_agent.py.
+Cron Agent - Unified command-line interface.
+
+Commands:
+    ./cronagent setup       Run first-time setup
+    ./cronagent install     Install scheduler
+    ./cronagent status      Check scheduler status
+    ./cronagent uninstall   Remove scheduler
+    ./cronagent             Run agent manually
 """
 
 import sys
@@ -10,24 +16,39 @@ from pathlib import Path
 # Get paths
 root_dir = Path(__file__).parent
 src_dir = root_dir / "src"
-venv_python = src_dir / "venv" / "bin" / "python"
+venv_python = src_dir / "venv" / "bin" / "python3"
 
-# Use venv Python if available, otherwise system Python
-if venv_python.exists():
-    import subprocess
-    result = subprocess.run(
-        [str(venv_python), str(src_dir / "cron_agent.py")] + sys.argv[1:],
-        cwd=root_dir
-    )
-    sys.exit(result.returncode)
-else:
-    # Add src to path
+# Check if running setup command
+if len(sys.argv) > 1 and sys.argv[1] == "setup":
+    # Run setup using system Python
     sys.path.insert(0, str(src_dir))
-    
-    # Change to root directory (for logs, config)
-    import os
-    os.chdir(root_dir)
-    
-    # Import and run
-    import cron_agent
-    cron_agent.main()
+    import setup
+    setup.main()
+    sys.exit(0)
+
+# For all other commands, check if setup was run
+if not venv_python.exists():
+    print("❌ Virtual environment not found!")
+    print()
+    print("Please run setup first:")
+    print("  ./cronagent setup")
+    print()
+    sys.exit(1)
+
+# Translate subcommands to flags for compatibility with cron_agent.py
+args = sys.argv[1:]
+if len(args) > 0:
+    if args[0] == "install":
+        args[0] = "--install"
+    elif args[0] == "uninstall":
+        args[0] = "--uninstall"
+    elif args[0] == "status":
+        args[0] = "--status"
+
+# Use venv Python for all other commands
+import subprocess
+result = subprocess.run(
+    [str(venv_python), str(src_dir / "cron_agent.py")] + args,
+    cwd=root_dir
+)
+sys.exit(result.returncode)
