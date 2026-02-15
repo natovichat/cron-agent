@@ -16,6 +16,7 @@ These files are **already** in root and should stay:
 - ✅ `.env` - Configuration (auto-generated)
 - ✅ `cronagent` - Main launcher script
 - ✅ `.gitignore` - Git configuration
+- ✅ `README.md` - **Minimal pointer to docs/** (keeps GitHub happy)
 - ✅ `setup-guide.html` - **EXCEPTION: Can be created/updated in root**
 
 ## Where to Put New Files
