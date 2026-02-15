@@ -355,7 +355,8 @@ class CursorAgent:
         Returns:
             Formatted prompt with system instructions and task
         """
-        system_prompt = """You are a helpful AI assistant executing tasks from Todoist.
+        # Default system prompt (used if not in .env)
+        default_system_prompt = """You are a helpful AI assistant executing tasks from Todoist.
 
 IMPORTANT INSTRUCTIONS:
 - Be concise and direct in your responses
@@ -375,7 +376,10 @@ RESPONSE FORMAT:
 
 """
         
-        return system_prompt + f"TASK:\n{task_content}"
+        # Get system prompt from environment (allows customization)
+        system_prompt = os.getenv('CURSOR_SYSTEM_PROMPT', default_system_prompt)
+        
+        return system_prompt + f"\nTASK:\n{task_content}"
     
     def _execute_with_cli(self, task_content: str) -> str:
         """
